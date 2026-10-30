@@ -1,0 +1,770 @@
+{
+ "tipo": "mutations",
+ "max_rows": null,
+ "semilla": 2026,
+ "eventos_leidos": 3600963,
+ "truncado": false,
+ "muestras_en_maf": 10295,
+ "claves_no_contiguas": 0,
+ "frac_filter_pass": 0.8073770821860707,
+ "clasificaciones": {
+  "Missense_Mutation": 1921979,
+  "Silent": 782687,
+  "3'UTR": 282636,
+  "Nonsense_Mutation": 157232,
+  "Intron": 108104,
+  "Frame_Shift_Del": 87013,
+  "5'UTR": 81323,
+  "Splice_Site": 50617,
+  "RNA": 49540,
+  "Frame_Shift_Ins": 27128,
+  "3'Flank": 21060,
+  "5'Flank": 15726,
+  "In_Frame_Del": 10254,
+  "Translation_Start_Site": 2723,
+  "Nonstop_Mutation": 2042,
+  "In_Frame_Ins": 899
+ },
+ "genes_distintos_todas": 21332,
+ "genes_distintos_no_silenciosas": 19687,
+ "embudo": {
+  "columnas": 10295,
+  "excluida_codigo_02": 35,
+  "sin_etiqueta": 78,
+  "excluida_codigo_05": 10,
+  "duplicada_mismo_paciente": 27,
+  "pacientes_elegibles": 10145
+ },
+ "tamanos_todos_los_pacientes": {
+  "n_pacientes": 10145,
+  "genes_todas": {
+   "q00": 1.0,
+   "q01": 5.0,
+   "q05": 13.0,
+   "q25": 42.0,
+   "q50": 90.0,
+   "q75": 201.0,
+   "q95": 1079.199999999997,
+   "q99": 3191.359999999997,
+   "q100": 13954.0,
+   "media": 275.2059142434697
+  },
+  "genes_no_silenciosas": {
+   "q00": 0.0,
+   "q01": 3.0,
+   "q05": 8.200000000000045,
+   "q25": 28.0,
+   "q50": 58.0,
+   "q75": 130.0,
+   "q95": 682.7999999999993,
+   "q99": 2096.479999999996,
+   "q100": 11211.0,
+   "media": 181.36707737801873
+  },
+  "eventos_no_silenciosos": {
+   "q00": 0.0,
+   "q01": 3.0,
+   "q05": 9.0,
+   "q25": 29.0,
+   "q50": 61.0,
+   "q75": 140.0,
+   "q95": 761.0,
+   "q99": 2561.639999999965,
+   "q100": 31097.0,
+   "media": 220.67471660916706
+  },
+  "cv_genes_no_silenciosas": 2.9737829621502025,
+  "frac_cero_no_silenciosas": 0.0015771315919172006,
+  "frac_ge_500_genes_ns": 0.07057663873829473,
+  "frac_ge_1000_genes_ns": 0.031049778215869888,
+  "eta2_log_tamano_vs_tipo": 0.5138178586600708,
+  "mediana_genes_ns_por_tipo": {
+   "ACC": 25.5,
+   "BLCA": 156.0,
+   "BRCA": 38.5,
+   "CESC": 84.0,
+   "CHOL": 36.5,
+   "COAD": 111.0,
+   "DLBC": 105.0,
+   "ESCA": 101.0,
+   "GBM": 50.0,
+   "HNSC": 100.0,
+   "KICH": 20.0,
+   "KIRC": 51.0,
+   "KIRP": 61.0,
+   "LAML": 12.5,
+   "LGG": 27.0,
+   "LIHC": 79.0,
+   "LUAD": 183.0,
+   "LUSC": 211.0,
+   "MESO": 27.5,
+   "OV": 67.0,
+   "PAAD": 34.0,
+   "PCPG": 9.0,
+   "PRAD": 26.0,
+   "READ": 90.0,
+   "SARC": 39.0,
+   "SKCM": 391.0,
+   "STAD": 110.0,
+   "TGCT": 12.0,
+   "THCA": 10.0,
+   "THYM": 14.0,
+   "UCEC": 72.0,
+   "UCS": 46.0,
+   "UVM": 12.0
+  },
+  "top10_hipermutados": [
+   {
+    "muestra": "TCGA-A5-A0G2-01A-11W-A062-09",
+    "tipo": "UCEC",
+    "genes_ns": 11211
+   },
+   {
+    "muestra": "TCGA-IB-7651-01A-11D-2154-08",
+    "tipo": "PAAD",
+    "genes_ns": 8387
+   },
+   {
+    "muestra": "TCGA-FI-A2D5-01A-11D-A17D-09",
+    "tipo": "UCEC",
+    "genes_ns": 8284
+   },
+   {
+    "muestra": "TCGA-EO-A22U-01A-11D-A17W-09",
+    "tipo": "UCEC",
+    "genes_ns": 8266
+   },
+   {
+    "muestra": "TCGA-AP-A0LM-01A-11D-A122-09",
+    "tipo": "UCEC",
+    "genes_ns": 7957
+   },
+   {
+    "muestra": "TCGA-AX-A2HC-01A-11D-A17D-09",
+    "tipo": "UCEC",
+    "genes_ns": 7847
+   },
+   {
+    "muestra": "TCGA-EO-A22R-01A-11D-A18P-09",
+    "tipo": "UCEC",
+    "genes_ns": 7759
+   },
+   {
+    "muestra": "TCGA-B5-A3FC-01A-11D-A228-09",
+    "tipo": "UCEC",
+    "genes_ns": 7609
+   },
+   {
+    "muestra": "TCGA-06-5416-01A-01D-1486-08",
+    "tipo": "GBM",
+    "genes_ns": 7601
+   },
+   {
+    "muestra": "TCGA-AP-A1DV-01A-21D-A135-09",
+    "tipo": "UCEC",
+    "genes_ns": 7412
+   }
+  ]
+ },
+ "genes_mas_frecuentes_ns": [
+  [
+   "TP53",
+   3886
+  ],
+  [
+   "TTN",
+   3231
+  ],
+  [
+   "MUC16",
+   2046
+  ],
+  [
+   "PIK3CA",
+   1398
+  ],
+  [
+   "CSMD3",
+   1371
+  ],
+  [
+   "RYR2",
+   1333
+  ],
+  [
+   "LRP1B",
+   1312
+  ],
+  [
+   "SYNE1",
+   1279
+  ],
+  [
+   "FLG",
+   1199
+  ],
+  [
+   "USH2A",
+   1148
+  ],
+  [
+   "PCLO",
+   1110
+  ],
+  [
+   "ZFHX4",
+   1056
+  ],
+  [
+   "DNAH5",
+   1029
+  ],
+  [
+   "OBSCN",
+   1013
+  ],
+  [
+   "KMT2D",
+   988
+  ],
+  [
+   "CSMD1",
+   953
+  ],
+  [
+   "FAT4",
+   951
+  ],
+  [
+   "SPTA1",
+   943
+  ],
+  [
+   "XIRP2",
+   924
+  ],
+  [
+   "KMT2C",
+   918
+  ],
+  [
+   "HMCN1",
+   917
+  ],
+  [
+   "FAT3",
+   915
+  ],
+  [
+   "GPR98",
+   894
+  ],
+  [
+   "MUC17",
+   875
+  ],
+  [
+   "PTEN",
+   874
+  ],
+  [
+   "RYR1",
+   860
+  ],
+  [
+   "RYR3",
+   857
+  ],
+  [
+   "PCDH15",
+   841
+  ],
+  [
+   "NEB",
+   837
+  ],
+  [
+   "APC",
+   828
+  ]
+ ],
+ "seleccion": {
+  "pool": 1365,
+  "presentes_en_maf": 1241,
+  "elegidos_por_tipo": {
+   "ACC": 13,
+   "BLCA": 13,
+   "BRCA": 13,
+   "CESC": 13,
+   "CHOL": 12,
+   "COAD": 12,
+   "DLBC": 12,
+   "ESCA": 12,
+   "GBM": 12,
+   "HNSC": 12,
+   "KICH": 12,
+   "KIRC": 12,
+   "KIRP": 12,
+   "LAML": 12,
+   "LGG": 12,
+   "LIHC": 12,
+   "LUAD": 12,
+   "LUSC": 12,
+   "MESO": 12,
+   "OV": 12,
+   "PAAD": 12,
+   "PCPG": 12,
+   "PRAD": 12,
+   "READ": 12,
+   "SARC": 12,
+   "SKCM": 12,
+   "STAD": 12,
+   "TGCT": 12,
+   "THCA": 12,
+   "THYM": 12,
+   "UCEC": 12,
+   "UCS": 12,
+   "UVM": 12
+  }
+ },
+ "seg_lectura": 447.77,
+ "analisis": {
+  "n_muestras": 400,
+  "clases": {
+   "ACC": 13,
+   "BLCA": 13,
+   "BRCA": 13,
+   "CESC": 13,
+   "CHOL": 12,
+   "COAD": 12,
+   "DLBC": 12,
+   "ESCA": 12,
+   "GBM": 12,
+   "HNSC": 12,
+   "KICH": 12,
+   "KIRC": 12,
+   "KIRP": 12,
+   "LAML": 12,
+   "LGG": 12,
+   "LIHC": 12,
+   "LUAD": 12,
+   "LUSC": 12,
+   "MESO": 12,
+   "OV": 12,
+   "PAAD": 12,
+   "PCPG": 12,
+   "PRAD": 12,
+   "READ": 12,
+   "SARC": 12,
+   "SKCM": 12,
+   "STAD": 12,
+   "TGCT": 12,
+   "THCA": 12,
+   "THYM": 12,
+   "UCEC": 12,
+   "UCS": 12,
+   "UVM": 12
+  },
+  "pureza_azar": 0.027894736842105264,
+  "variantes": {
+   "todas": {
+    "metricas": {
+     "jaccard": {
+      "pureza@1": 0.215,
+      "voto@1": 0.215,
+      "pureza@5": 0.1615,
+      "voto@5": 0.235,
+      "pureza@10": 0.128,
+      "voto@10": 0.2475,
+      "concentracion": {
+       "contraste_relativo_mediana": 0.03199243223125116,
+       "contraste_relativo_q10": 0.02325581395348835,
+       "contraste_relativo_q90": 0.05724252491694355,
+       "consultas_dmin_cero": 0,
+       "cv_distancias": 0.008081615509647975,
+       "dmin_sobre_dmedia_mediana": 0.9741889575651985,
+       "cuantiles_distancia": {
+        "q05": 0.9811320754716981,
+        "q25": 0.9916666666666667,
+        "q50": 0.9974779319041615,
+        "q75": 1.0,
+        "q95": 1.0
+       }
+      },
+      "hubness": {
+       "k": 10,
+       "asimetria_Nk": 2.565521244548638,
+       "max_Nk": 62,
+       "frac_antihubs": 0.0075,
+       "frac_hubs_2k": 0.0775
+      },
+      "separacion": {
+       "intra_media": 0.9892614560456097,
+       "inter_media": 0.9948540755206933,
+       "inter_sobre_intra": 1.0056533279861515
+      }
+     },
+     "coseno_binario": {
+      "pureza@1": 0.14,
+      "voto@1": 0.14,
+      "pureza@5": 0.1335,
+      "voto@5": 0.175,
+      "pureza@10": 0.101,
+      "voto@10": 0.1825,
+      "concentracion": {
+       "contraste_relativo_mediana": 0.08140846333079138,
+       "contraste_relativo_q10": 0.05726138531956189,
+       "contraste_relativo_q90": 0.1738273439622862,
+       "consultas_dmin_cero": 0,
+       "cv_distancias": 0.01948142228789902,
+       "dmin_sobre_dmedia_mediana": 0.9357947897058834,
+       "cuantiles_distancia": {
+        "q05": 0.9533747595879843,
+        "q25": 0.9773570395644454,
+        "q50": 0.9909906253730444,
+        "q75": 1.0,
+        "q95": 1.0
+       }
+      },
+      "hubness": {
+       "k": 10,
+       "asimetria_Nk": 7.789242610067752,
+       "max_Nk": 298,
+       "frac_antihubs": 0.0225,
+       "frac_hubs_2k": 0.05
+      },
+      "separacion": {
+       "intra_media": 0.9759802234950248,
+       "inter_media": 0.986303127018865,
+       "inter_sobre_intra": 1.0105769597327223
+      }
+     },
+     "hamming": {
+      "pureza@1": 0.03,
+      "voto@1": 0.03,
+      "pureza@5": 0.031,
+      "voto@5": 0.0375,
+      "pureza@10": 0.02925,
+      "voto@10": 0.035,
+      "concentracion": {
+       "contraste_relativo_mediana": 146.58823529411765,
+       "contraste_relativo_q10": 21.75013214481195,
+       "contraste_relativo_q90": 504.7694736842111,
+       "consultas_dmin_cero": 0,
+       "cv_distancias": 2.226185394891403,
+       "dmin_sobre_dmedia_mediana": 0.2299595348889118,
+       "cuantiles_distancia": {
+        "q05": 48.0,
+        "q25": 101.0,
+        "q50": 178.0,
+        "q75": 378.0,
+        "q95": 1684.0
+       }
+      },
+      "hubness": {
+       "k": 10,
+       "asimetria_Nk": 6.088915835795191,
+       "max_Nk": 397,
+       "frac_antihubs": 0.8725,
+       "frac_hubs_2k": 0.03
+      },
+      "separacion": {
+       "intra_media": 441.992362982929,
+       "inter_media": 453.893585479671,
+       "inter_sobre_intra": 1.0269263079941533
+      }
+     }
+    },
+    "acuerdo": {
+     "jaccard|coseno_binario": 0.46029058016287117,
+     "jaccard|hamming": 0.010404372674109515,
+     "coseno_binario|hamming": 0.014779372674109517
+    },
+    "universo_genes": 18550,
+    "densidad": 0.012474123989218329,
+    "tamano_conjunto": {
+     "q00": 1.0,
+     "q01": 4.99,
+     "q05": 12.950000000000003,
+     "q25": 34.75,
+     "q50": 67.0,
+     "q75": 153.25,
+     "q95": 785.5999999999995,
+     "q99": 2831.5499999999993,
+     "q100": 10059.0,
+     "media": 231.395
+    },
+    "frac_conjuntos_vacios": 0.0,
+    "frac_genes_en_una_sola_muestra": 0.1418867924528302,
+    "corr_spearman_tamano_vs_Nk_hamming": -0.22078066425197437,
+    "corr_spearman_tamano_vs_Nk_jaccard": 0.16632842579093216
+   },
+   "no_silenciosas": {
+    "metricas": {
+     "jaccard": {
+      "pureza@1": 0.24,
+      "voto@1": 0.24,
+      "pureza@5": 0.172,
+      "voto@5": 0.2625,
+      "pureza@10": 0.13325,
+      "voto@10": 0.2325,
+      "concentracion": {
+       "contraste_relativo_mediana": 0.03766491700950493,
+       "contraste_relativo_q10": 0.025000000000000022,
+       "contraste_relativo_q90": 0.06666666666666667,
+       "consultas_dmin_cero": 0,
+       "cv_distancias": 0.007690689811542186,
+       "dmin_sobre_dmedia_mediana": 0.9686992257274816,
+       "cuantiles_distancia": {
+        "q05": 0.9811320754716981,
+        "q25": 0.9925373134328358,
+        "q50": 1.0,
+        "q75": 1.0,
+        "q95": 1.0
+       }
+      },
+      "hubness": {
+       "k": 10,
+       "asimetria_Nk": 2.49977812888552,
+       "max_Nk": 75,
+       "frac_antihubs": 0.015,
+       "frac_hubs_2k": 0.085
+      },
+      "separacion": {
+       "intra_media": 0.9895602915043857,
+       "inter_media": 0.9956324328927392,
+       "inter_sobre_intra": 1.0061362015437405
+      }
+     },
+     "coseno_binario": {
+      "pureza@1": 0.16,
+      "voto@1": 0.16,
+      "pureza@5": 0.143,
+      "voto@5": 0.1925,
+      "pureza@10": 0.117,
+      "voto@10": 0.2075,
+      "concentracion": {
+       "contraste_relativo_mediana": 0.089150428079245,
+       "contraste_relativo_q10": 0.06299403119854914,
+       "contraste_relativo_q90": 0.17036194367606436,
+       "consultas_dmin_cero": 0,
+       "cv_distancias": 0.018212540824509325,
+       "dmin_sobre_dmedia_mediana": 0.9282326192038624,
+       "cuantiles_distancia": {
+        "q05": 0.9551889285051779,
+        "q25": 0.9790296939004989,
+        "q50": 1.0,
+        "q75": 1.0,
+        "q95": 1.0
+       }
+      },
+      "hubness": {
+       "k": 10,
+       "asimetria_Nk": 7.605910452366926,
+       "max_Nk": 203,
+       "frac_antihubs": 0.015,
+       "frac_hubs_2k": 0.0775
+      },
+      "separacion": {
+       "intra_media": 0.9769698473762075,
+       "inter_media": 0.9885298037896186,
+       "inter_sobre_intra": 1.011832459767778
+      }
+     },
+     "hamming": {
+      "pureza@1": 0.03,
+      "voto@1": 0.03,
+      "pureza@5": 0.0315,
+      "voto@5": 0.035,
+      "pureza@10": 0.03075,
+      "voto@10": 0.0275,
+      "concentracion": {
+       "contraste_relativo_mediana": 175.30232558139534,
+       "contraste_relativo_q10": 24.688780868985646,
+       "contraste_relativo_q90": 632.75,
+       "consultas_dmin_cero": 0,
+       "cv_distancias": 2.4564314297627456,
+       "dmin_sobre_dmedia_mediana": 0.2207999361155174,
+       "cuantiles_distancia": {
+        "q05": 31.0,
+        "q25": 65.0,
+        "q50": 112.0,
+        "q75": 244.0,
+        "q95": 1042.0
+       }
+      },
+      "hubness": {
+       "k": 10,
+       "asimetria_Nk": 6.139714519388214,
+       "max_Nk": 397,
+       "frac_antihubs": 0.8875,
+       "frac_hubs_2k": 0.0375
+      },
+      "separacion": {
+       "intra_media": 296.12309074573227,
+       "inter_media": 302.82581792868746,
+       "inter_sobre_intra": 1.0226349359182885
+      }
+     }
+    },
+    "acuerdo": {
+     "jaccard|coseno_binario": 0.6337265920354155,
+     "jaccard|hamming": 0.009801606202534995,
+     "coseno_binario|hamming": 0.01771354290704136
+    },
+    "universo_genes": 16147,
+    "densidad": 0.009521582956586363,
+    "tamano_conjunto": {
+     "q00": 0.0,
+     "q01": 2.0,
+     "q05": 7.0,
+     "q25": 23.0,
+     "q50": 43.0,
+     "q75": 93.25,
+     "q95": 518.3999999999996,
+     "q99": 1548.2599999999952,
+     "q100": 7601.0,
+     "media": 153.745
+    },
+    "frac_conjuntos_vacios": 0.0025,
+    "frac_genes_en_una_sola_muestra": 0.22852542267913545,
+    "corr_spearman_tamano_vs_Nk_hamming": -0.18263426107275144,
+    "corr_spearman_tamano_vs_Nk_jaccard": 0.18222839633525525
+   },
+   "no_silenciosas_top500": {
+    "metricas": {
+     "jaccard": {
+      "pureza@1": 0.1425,
+      "voto@1": 0.1425,
+      "pureza@5": 0.1195,
+      "voto@5": 0.165,
+      "pureza@10": 0.10275,
+      "voto@10": 0.1775,
+      "concentracion": {
+       "contraste_relativo_mediana": 0.19999999999999996,
+       "contraste_relativo_q10": 0.11764705882352941,
+       "contraste_relativo_q90": 0.39999999999999997,
+       "consultas_dmin_cero": 4,
+       "cv_distancias": 0.033085236475413296,
+       "dmin_sobre_dmedia_mediana": 0.855609228695279,
+       "cuantiles_distancia": {
+        "q05": 0.9183196425539142,
+        "q25": 0.9743589743589743,
+        "q50": 1.0,
+        "q75": 1.0,
+        "q95": 1.0
+       }
+      },
+      "hubness": {
+       "k": 10,
+       "asimetria_Nk": 2.001043903165805,
+       "max_Nk": 58,
+       "frac_antihubs": 0.065,
+       "frac_hubs_2k": 0.085
+      },
+      "separacion": {
+       "intra_media": 0.9627743070940844,
+       "inter_media": 0.9836679114470054,
+       "inter_sobre_intra": 1.0217014560930522
+      }
+     },
+     "coseno_binario": {
+      "pureza@1": 0.1125,
+      "voto@1": 0.1125,
+      "pureza@5": 0.0975,
+      "voto@5": 0.135,
+      "pureza@10": 0.08925,
+      "voto@10": 0.1425,
+      "concentracion": {
+       "contraste_relativo_mediana": 0.47589409505468727,
+       "contraste_relativo_q10": 0.3030536183142787,
+       "contraste_relativo_q90": 1.0,
+       "consultas_dmin_cero": 4,
+       "cv_distancias": 0.06979514085450354,
+       "dmin_sobre_dmedia_mediana": 0.7035289103792572,
+       "cuantiles_distancia": {
+        "q05": 0.8259223440443022,
+        "q25": 0.9258750683338899,
+        "q50": 1.0,
+        "q75": 1.0,
+        "q95": 1.0
+       }
+      },
+      "hubness": {
+       "k": 10,
+       "asimetria_Nk": 4.878597166489274,
+       "max_Nk": 123,
+       "frac_antihubs": 0.0575,
+       "frac_hubs_2k": 0.09
+      },
+      "separacion": {
+       "intra_media": 0.925421642469455,
+       "inter_media": 0.96128675253022,
+       "inter_sobre_intra": 1.0387554260834664
+      }
+     },
+     "hamming": {
+      "pureza@1": 0.0675,
+      "voto@1": 0.0675,
+      "pureza@5": 0.0425,
+      "voto@5": 0.07,
+      "pureza@10": 0.03975,
+      "voto@10": 0.05,
+      "concentracion": {
+       "contraste_relativo_mediana": 54.125,
+       "contraste_relativo_q10": 8.350000000000001,
+       "contraste_relativo_q90": 222.0,
+       "consultas_dmin_cero": 27,
+       "cv_distancias": 1.501379065558931,
+       "dmin_sobre_dmedia_mediana": 0.2698844137102808,
+       "cuantiles_distancia": {
+        "q05": 4.0,
+        "q25": 11.0,
+        "q50": 19.0,
+        "q75": 40.0,
+        "q95": 130.0
+       }
+      },
+      "hubness": {
+       "k": 10,
+       "asimetria_Nk": 6.334869001879012,
+       "max_Nk": 363,
+       "frac_antihubs": 0.4825,
+       "frac_hubs_2k": 0.05
+      },
+      "separacion": {
+       "intra_media": 35.189128481581314,
+       "inter_media": 37.80382602418336,
+       "inter_sobre_intra": 1.0743041290144661
+      }
+     }
+    },
+    "acuerdo": {
+     "jaccard|coseno_binario": 0.731945769658618,
+     "jaccard|hamming": 0.04451148481721237,
+     "coseno_binario|hamming": 0.08204357755247849
+    },
+    "universo_genes": 500,
+    "densidad": 0.039795,
+    "tamano_conjunto": {
+     "q00": 0.0,
+     "q01": 0.0,
+     "q05": 0.0,
+     "q25": 3.0,
+     "q50": 8.0,
+     "q75": 16.0,
+     "q95": 74.04999999999995,
+     "q99": 173.67999999999938,
+     "q100": 448.0,
+     "media": 19.8975
+    },
+    "frac_conjuntos_vacios": 0.0575,
+    "frac_genes_en_una_sola_muestra": 0.0,
+    "corr_spearman_tamano_vs_Nk_hamming": -0.5195075597974598,
+    "corr_spearman_tamano_vs_Nk_jaccard": 0.5049547819842661
+   }
+  }
+ },
+ "seg_analisis": 2.72,
+ "seg_total": 450.53
+}

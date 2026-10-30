@@ -1,0 +1,706 @@
+{
+  "metodo": "SimHash-256 + re-ranking RP-256 (f = 10)",
+  "k_principal": 5,
+  "clasificacion": {
+    "referencias": {
+      "clase_mayoritaria": {
+        "accuracy": 0.108,
+        "f1_macro": 0.00590744995077125,
+        "balanced_accuracy": 0.030303030303030304,
+        "tasa_de_error": 0.892,
+        "f1_ponderado": 0.021054151624548736
+      },
+      "azar_estratificado_exactitud_esperada": 0.04596459083890891
+    },
+    "k=1": {
+      "exacto": {
+        "accuracy": 0.926,
+        "f1_macro": 0.9113771061091255,
+        "balanced_accuracy": 0.9051622619804438,
+        "tasa_de_error": 0.07399999999999995,
+        "f1_ponderado": 0.9244740702233172
+      },
+      "aproximado": {
+        "accuracy": 0.914,
+        "f1_macro": 0.8866939170299927,
+        "balanced_accuracy": 0.8807477202931748,
+        "tasa_de_error": 0.08599999999999997,
+        "f1_ponderado": 0.9138562612280496
+      },
+      "acuerdo_de_voto": 0.95
+    },
+    "k=5": {
+      "exacto": {
+        "accuracy": 0.934,
+        "f1_macro": 0.9061354180969986,
+        "balanced_accuracy": 0.8986173254355073,
+        "tasa_de_error": 0.06599999999999995,
+        "f1_ponderado": 0.9320820677433176
+      },
+      "aproximado": {
+        "accuracy": 0.916,
+        "f1_macro": 0.8874381674911633,
+        "balanced_accuracy": 0.8827537613901251,
+        "tasa_de_error": 0.08399999999999996,
+        "f1_ponderado": 0.9153566236947378
+      },
+      "acuerdo_de_voto": 0.964,
+      "delta_exactitud_IC95": [
+        -0.03399999999999992,
+        -0.0020000000000000018
+      ],
+      "delta_f1_macro_IC95": [
+        -0.03550048274267248,
+        -0.004897793228388559
+      ]
+    },
+    "k=10": {
+      "exacto": {
+        "accuracy": 0.924,
+        "f1_macro": 0.8909336078183673,
+        "balanced_accuracy": 0.8886191754373574,
+        "tasa_de_error": 0.07599999999999996,
+        "f1_ponderado": 0.9216785756214317
+      },
+      "aproximado": {
+        "accuracy": 0.918,
+        "f1_macro": 0.8861912396259009,
+        "balanced_accuracy": 0.8797372324645052,
+        "tasa_de_error": 0.08199999999999996,
+        "f1_ponderado": 0.9150700892309906
+      },
+      "acuerdo_de_voto": 0.974
+    }
+  },
+  "por_clase": [
+    {
+      "tipo": "ACC",
+      "consultas": 4,
+      "precision_exacto": 1.0,
+      "recall_exacto": 1.0,
+      "f1_exacto": 1.0,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 1.0
+    },
+    {
+      "tipo": "BLCA",
+      "consultas": 20,
+      "precision_exacto": 0.9444444444444444,
+      "recall_exacto": 0.85,
+      "f1_exacto": 0.8947368421052632,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 0.85,
+      "f1_aproximado": 0.918918918918919
+    },
+    {
+      "tipo": "BRCA",
+      "consultas": 54,
+      "precision_exacto": 1.0,
+      "recall_exacto": 0.9444444444444444,
+      "f1_exacto": 0.9714285714285714,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 0.9444444444444444,
+      "f1_aproximado": 0.9714285714285714
+    },
+    {
+      "tipo": "CESC",
+      "consultas": 15,
+      "precision_exacto": 0.8461538461538461,
+      "recall_exacto": 0.7333333333333333,
+      "f1_exacto": 0.7857142857142857,
+      "precision_aproximado": 0.8571428571428571,
+      "recall_aproximado": 0.8,
+      "f1_aproximado": 0.8275862068965517
+    },
+    {
+      "tipo": "CHOL",
+      "consultas": 2,
+      "precision_exacto": 1.0,
+      "recall_exacto": 0.5,
+      "f1_exacto": 0.6666666666666666,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 0.5,
+      "f1_aproximado": 0.6666666666666666
+    },
+    {
+      "tipo": "COAD",
+      "consultas": 22,
+      "precision_exacto": 0.8,
+      "recall_exacto": 0.9090909090909091,
+      "f1_exacto": 0.851063829787234,
+      "precision_aproximado": 0.75,
+      "recall_aproximado": 0.8181818181818182,
+      "f1_aproximado": 0.782608695652174
+    },
+    {
+      "tipo": "DLBC",
+      "consultas": 2,
+      "precision_exacto": 1.0,
+      "recall_exacto": 1.0,
+      "f1_exacto": 1.0,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 1.0
+    },
+    {
+      "tipo": "ESCA",
+      "consultas": 9,
+      "precision_exacto": 1.0,
+      "recall_exacto": 0.7777777777777778,
+      "f1_exacto": 0.875,
+      "precision_aproximado": 0.8333333333333334,
+      "recall_aproximado": 0.5555555555555556,
+      "f1_aproximado": 0.6666666666666666
+    },
+    {
+      "tipo": "GBM",
+      "consultas": 7,
+      "precision_exacto": 1.0,
+      "recall_exacto": 1.0,
+      "f1_exacto": 1.0,
+      "precision_aproximado": 0.7777777777777778,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 0.875
+    },
+    {
+      "tipo": "HNSC",
+      "consultas": 25,
+      "precision_exacto": 0.8888888888888888,
+      "recall_exacto": 0.96,
+      "f1_exacto": 0.9230769230769231,
+      "precision_aproximado": 0.8518518518518519,
+      "recall_aproximado": 0.92,
+      "f1_aproximado": 0.8846153846153846
+    },
+    {
+      "tipo": "KICH",
+      "consultas": 3,
+      "precision_exacto": 0.3333333333333333,
+      "recall_exacto": 0.3333333333333333,
+      "f1_exacto": 0.3333333333333333,
+      "precision_aproximado": 0.3333333333333333,
+      "recall_aproximado": 0.3333333333333333,
+      "f1_aproximado": 0.3333333333333333
+    },
+    {
+      "tipo": "KIRC",
+      "consultas": 26,
+      "precision_exacto": 0.96,
+      "recall_exacto": 0.9230769230769231,
+      "f1_exacto": 0.9411764705882353,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 0.9230769230769231,
+      "f1_aproximado": 0.96
+    },
+    {
+      "tipo": "KIRP",
+      "consultas": 14,
+      "precision_exacto": 0.8666666666666667,
+      "recall_exacto": 0.9285714285714286,
+      "f1_exacto": 0.896551724137931,
+      "precision_aproximado": 0.875,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 0.9333333333333333
+    },
+    {
+      "tipo": "LAML",
+      "consultas": 8,
+      "precision_exacto": 1.0,
+      "recall_exacto": 1.0,
+      "f1_exacto": 1.0,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 1.0
+    },
+    {
+      "tipo": "LGG",
+      "consultas": 25,
+      "precision_exacto": 1.0,
+      "recall_exacto": 1.0,
+      "f1_exacto": 1.0,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 0.96,
+      "f1_aproximado": 0.9795918367346939
+    },
+    {
+      "tipo": "LIHC",
+      "consultas": 18,
+      "precision_exacto": 1.0,
+      "recall_exacto": 1.0,
+      "f1_exacto": 1.0,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 1.0
+    },
+    {
+      "tipo": "LUAD",
+      "consultas": 25,
+      "precision_exacto": 0.9230769230769231,
+      "recall_exacto": 0.96,
+      "f1_exacto": 0.9411764705882353,
+      "precision_aproximado": 0.8518518518518519,
+      "recall_aproximado": 0.92,
+      "f1_aproximado": 0.8846153846153846
+    },
+    {
+      "tipo": "LUSC",
+      "consultas": 25,
+      "precision_exacto": 0.8846153846153846,
+      "recall_exacto": 0.92,
+      "f1_exacto": 0.9019607843137255,
+      "precision_aproximado": 0.8461538461538461,
+      "recall_aproximado": 0.88,
+      "f1_aproximado": 0.8627450980392157
+    },
+    {
+      "tipo": "MESO",
+      "consultas": 4,
+      "precision_exacto": 1.0,
+      "recall_exacto": 1.0,
+      "f1_exacto": 1.0,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 1.0
+    },
+    {
+      "tipo": "OV",
+      "consultas": 15,
+      "precision_exacto": 0.8823529411764706,
+      "recall_exacto": 1.0,
+      "f1_exacto": 0.9375,
+      "precision_aproximado": 0.9375,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 0.967741935483871
+    },
+    {
+      "tipo": "PAAD",
+      "consultas": 9,
+      "precision_exacto": 0.9,
+      "recall_exacto": 1.0,
+      "f1_exacto": 0.9473684210526315,
+      "precision_aproximado": 0.9,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 0.9473684210526315
+    },
+    {
+      "tipo": "PCPG",
+      "consultas": 9,
+      "precision_exacto": 1.0,
+      "recall_exacto": 1.0,
+      "f1_exacto": 1.0,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 1.0
+    },
+    {
+      "tipo": "PRAD",
+      "consultas": 24,
+      "precision_exacto": 1.0,
+      "recall_exacto": 1.0,
+      "f1_exacto": 1.0,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 1.0
+    },
+    {
+      "tipo": "READ",
+      "consultas": 8,
+      "precision_exacto": 0.6,
+      "recall_exacto": 0.375,
+      "f1_exacto": 0.46153846153846156,
+      "precision_aproximado": 0.375,
+      "recall_aproximado": 0.375,
+      "f1_aproximado": 0.375
+    },
+    {
+      "tipo": "SARC",
+      "consultas": 13,
+      "precision_exacto": 0.9285714285714286,
+      "recall_exacto": 1.0,
+      "f1_exacto": 0.9629629629629629,
+      "precision_aproximado": 0.9230769230769231,
+      "recall_aproximado": 0.9230769230769231,
+      "f1_aproximado": 0.9230769230769231
+    },
+    {
+      "tipo": "SKCM",
+      "consultas": 23,
+      "precision_exacto": 0.9583333333333334,
+      "recall_exacto": 1.0,
+      "f1_exacto": 0.9787234042553191,
+      "precision_aproximado": 0.9583333333333334,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 0.9787234042553191
+    },
+    {
+      "tipo": "STAD",
+      "consultas": 20,
+      "precision_exacto": 0.9047619047619048,
+      "recall_exacto": 0.95,
+      "f1_exacto": 0.926829268292683,
+      "precision_aproximado": 0.8421052631578947,
+      "recall_aproximado": 0.8,
+      "f1_aproximado": 0.8205128205128205
+    },
+    {
+      "tipo": "TGCT",
+      "consultas": 7,
+      "precision_exacto": 1.0,
+      "recall_exacto": 1.0,
+      "f1_exacto": 1.0,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 1.0
+    },
+    {
+      "tipo": "THCA",
+      "consultas": 25,
+      "precision_exacto": 1.0,
+      "recall_exacto": 1.0,
+      "f1_exacto": 1.0,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 1.0
+    },
+    {
+      "tipo": "THYM",
+      "consultas": 6,
+      "precision_exacto": 1.0,
+      "recall_exacto": 1.0,
+      "f1_exacto": 1.0,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 1.0
+    },
+    {
+      "tipo": "UCEC",
+      "consultas": 26,
+      "precision_exacto": 0.8888888888888888,
+      "recall_exacto": 0.9230769230769231,
+      "f1_exacto": 0.9056603773584906,
+      "precision_aproximado": 0.8928571428571429,
+      "recall_aproximado": 0.9615384615384616,
+      "f1_aproximado": 0.9259259259259259
+    },
+    {
+      "tipo": "UCS",
+      "consultas": 3,
+      "precision_exacto": 1.0,
+      "recall_exacto": 0.6666666666666666,
+      "f1_exacto": 0.8,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 0.6666666666666666,
+      "f1_aproximado": 0.8
+    },
+    {
+      "tipo": "UVM",
+      "consultas": 4,
+      "precision_exacto": 1.0,
+      "recall_exacto": 1.0,
+      "f1_exacto": 1.0,
+      "precision_aproximado": 1.0,
+      "recall_aproximado": 1.0,
+      "f1_aproximado": 1.0
+    }
+  ],
+  "confusiones": {
+    "exacto": [
+      [
+        "KICH",
+        "KIRP",
+        0.6666666666666666
+      ],
+      [
+        "READ",
+        "COAD",
+        0.625
+      ],
+      [
+        "CHOL",
+        "PAAD",
+        0.5
+      ],
+      [
+        "UCS",
+        "UCEC",
+        0.3333333333333333
+      ],
+      [
+        "ESCA",
+        "STAD",
+        0.2222222222222222
+      ],
+      [
+        "CESC",
+        "HNSC",
+        0.13333333333333333
+      ],
+      [
+        "CESC",
+        "UCEC",
+        0.13333333333333333
+      ],
+      [
+        "BLCA",
+        "CESC",
+        0.1
+      ],
+      [
+        "COAD",
+        "READ",
+        0.09090909090909091
+      ],
+      [
+        "LUSC",
+        "LUAD",
+        0.08
+      ]
+    ],
+    "aproximado": [
+      [
+        "KICH",
+        "KIRP",
+        0.6666666666666666
+      ],
+      [
+        "READ",
+        "COAD",
+        0.625
+      ],
+      [
+        "CHOL",
+        "PAAD",
+        0.5
+      ],
+      [
+        "ESCA",
+        "STAD",
+        0.3333333333333333
+      ],
+      [
+        "UCS",
+        "UCEC",
+        0.3333333333333333
+      ],
+      [
+        "COAD",
+        "READ",
+        0.18181818181818182
+      ],
+      [
+        "CESC",
+        "HNSC",
+        0.13333333333333333
+      ],
+      [
+        "LUSC",
+        "LUAD",
+        0.12
+      ],
+      [
+        "ESCA",
+        "LUSC",
+        0.1111111111111111
+      ],
+      [
+        "BLCA",
+        "CESC",
+        0.1
+      ]
+    ]
+  },
+  "busqueda": {
+    "recall@1": 0.448,
+    "recall@5": 0.588,
+    "recall@10": 0.6317999999999999,
+    "coseno_medio_topk_exacto": 0.61280757188797,
+    "coseno_medio_topk_aproximado": 0.5978170000602541,
+    "perdida_similitud_topk": 0.014990571827715904,
+    "razon_aprox_distancia_coseno": 1.0364579433771477,
+    "t_consulta_ms_mediana": 0.6845000898465514,
+    "t_consulta_ms_p95": 0.8107249974273145,
+    "t_construccion_s": 0.01607519993558526,
+    "bytes_por_paciente": 1056.0,
+    "bytes_por_paciente_exacto_equivalente": 81236
+  },
+  "error_estimacion": {
+    "simhash_todos": {
+      "n_pares": 4857500,
+      "sesgo": 0.0004075075924546468,
+      "mae": 0.07637332823178428,
+      "rmse": 0.09566077481101956,
+      "error_p95_abs": 0.18740827738259708,
+      "correlacion": 0.8385905571996851
+    },
+    "simhash_vecinos": {
+      "n_pares": 5000,
+      "sesgo": 0.0013551965724044963,
+      "mae": 0.05350306638693172,
+      "rmse": 0.06879383535980528,
+      "error_p95_abs": 0.13580181274917158,
+      "correlacion": 0.9004987032179903
+    },
+    "rp_todos": {
+      "n_pares": 4857500,
+      "sesgo": 4.4354412914949516e-05,
+      "mae": 0.05030385353496599,
+      "rmse": 0.06311583767014145,
+      "error_p95_abs": 0.12373198229410311,
+      "correlacion": 0.920823404540485
+    },
+    "rp_vecinos": {
+      "n_pares": 5000,
+      "sesgo": 0.010951084571332238,
+      "mae": 0.0602410326545134,
+      "rmse": 0.07476541505951234,
+      "error_p95_abs": 0.14419120584217948,
+      "correlacion": 0.8944281289906895
+    },
+    "simhash_error_angular_rad": {
+      "rmse_observado": 0.0970822756740634,
+      "rmse_teorico": 0.09770946241390524
+    }
+  },
+  "escalamiento": [
+    {
+      "n": 250,
+      "recall@10": 0.7944000000000001,
+      "t_consulta_ms_mediana": 0.3895999398082495
+    },
+    {
+      "n": 500,
+      "recall@10": 0.7828000000000002,
+      "t_consulta_ms_mediana": 0.38454995956271887
+    },
+    {
+      "n": 1000,
+      "recall@10": 0.7456,
+      "t_consulta_ms_mediana": 0.40419993456453085
+    },
+    {
+      "n": 2000,
+      "recall@10": 0.705,
+      "t_consulta_ms_mediana": 0.4388500237837434
+    },
+    {
+      "n": 4000,
+      "recall@10": 0.6642,
+      "t_consulta_ms_mediana": 0.5415498744696379
+    },
+    {
+      "n": 8000,
+      "recall@10": 0.6392,
+      "t_consulta_ms_mediana": 0.6618999177590013
+    },
+    {
+      "n": 9715,
+      "recall@10": 0.6317999999999999,
+      "t_consulta_ms_mediana": 0.7457000901922584
+    }
+  ],
+  "parametros": {
+    "n_queries": 500,
+    "b": 256,
+    "m": 256,
+    "f": 10,
+    "k": 10,
+    "seed": 2026,
+    "g_max": null
+  },
+  "pasada": {
+    "genes_leidos": 20531,
+    "genes_usados": 20309,
+    "pacientes": 10215,
+    "consultas": 500,
+    "base": 9715,
+    "segundos": 418.722580099944,
+    "genes_por_segundo": 49.03246439468227,
+    "memoria_pico_proceso_MiB": 323.16015625,
+    "bytes_sketches": 20920320,
+    "bytes_verdad_QxB": 38860000,
+    "bytes_matriz_completa_evitada": 829825740,
+    "seleccion": {
+      "embudo": {
+        "columnas": 11069,
+        "excluida_codigo_11": 719,
+        "excluida_codigo_02": 46,
+        "sin_etiqueta": 46,
+        "excluida_codigo_07": 1,
+        "duplicada_mismo_paciente": 32,
+        "excluida_codigo_05": 10,
+        "pacientes_elegibles": 10215
+      },
+      "elegibles_por_tipo": {
+        "ACC": 79,
+        "BLCA": 408,
+        "BRCA": 1095,
+        "CESC": 304,
+        "CHOL": 36,
+        "COAD": 449,
+        "DLBC": 48,
+        "ESCA": 184,
+        "GBM": 153,
+        "HNSC": 520,
+        "KICH": 66,
+        "KIRC": 533,
+        "KIRP": 290,
+        "LAML": 173,
+        "LGG": 515,
+        "LIHC": 371,
+        "LUAD": 515,
+        "LUSC": 501,
+        "MESO": 87,
+        "OV": 304,
+        "PAAD": 178,
+        "PCPG": 179,
+        "PRAD": 497,
+        "READ": 159,
+        "SARC": 259,
+        "SKCM": 469,
+        "STAD": 415,
+        "TGCT": 134,
+        "THCA": 505,
+        "THYM": 120,
+        "UCEC": 532,
+        "UCS": 57,
+        "UVM": 80
+      },
+      "elegidas_por_tipo": {
+        "ACC": 79,
+        "BLCA": 408,
+        "BRCA": 1095,
+        "CESC": 304,
+        "CHOL": 36,
+        "COAD": 449,
+        "DLBC": 48,
+        "ESCA": 184,
+        "GBM": 153,
+        "HNSC": 520,
+        "KICH": 66,
+        "KIRC": 533,
+        "KIRP": 290,
+        "LAML": 173,
+        "LGG": 515,
+        "LIHC": 371,
+        "LUAD": 515,
+        "LUSC": 501,
+        "MESO": 87,
+        "OV": 304,
+        "PAAD": 178,
+        "PCPG": 179,
+        "PRAD": 497,
+        "READ": 159,
+        "SARC": 259,
+        "SKCM": 469,
+        "STAD": 415,
+        "TGCT": 134,
+        "THCA": 505,
+        "THYM": 120,
+        "UCEC": 532,
+        "UCS": 57,
+        "UVM": 80
+      }
+    }
+  }
+}
