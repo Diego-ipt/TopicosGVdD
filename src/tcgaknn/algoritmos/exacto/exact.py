@@ -211,9 +211,10 @@ class ExactKNN:
         if self.metric in SIMILARITY_METRICS:
             return Qb @ X.T
         if self.metric == "l2":
-            qsq = np.einsum("ij,ij->i", Qb, Qb, dtype=np.float64)
-            D2 = qsq[:, None] + self._sq[None, :] - 2.0 * (Qb @ X.T).astype(np.float64)
-            return np.maximum(D2, 0.0)
+            # Ground truth fiable: distancias directas en float64, sin errores
+            # por cancelación ni exclusión prematura de candidatos casi empatados.
+            from scipy.spatial.distance import cdist
+            return cdist(Qb.astype(np.float64), X.astype(np.float64), metric="euclidean")
         out = np.zeros((Qb.shape[0], X.shape[0]), dtype=np.float64)
         return l1_accumulate(Qb, X, out)
 
@@ -251,10 +252,8 @@ class ExactKNN:
         for s in range(0, nq, self.block_size):
             Qb = np.ascontiguousarray(Qp[s : s + self.block_size])
             S = self._block_scores(Qb)
-            if self.metric == "l2":
-                bi, bv = self._refine_l2(Qb, S, k)
-            else:
-                bi, bv = topk(S, k, largest=largest)
+            # L2 ya son distancias directas de `cdist`, no distancias al cuadrado.
+            bi, bv = topk(S, k, largest=largest)
             idx[s : s + Qb.shape[0]] = bi
             scores[s : s + Qb.shape[0]] = bv
         stats: dict[str, Any] = {

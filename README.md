@@ -1,3 +1,5 @@
+> **ACTUALIZACIÓN - revisión técnica 19/11/2026:** existe un flujo nuevo con cruce A1+A2+A3, divisiones train/val/test, ajuste exclusivo en training, calibración en validación y evaluación final independiente. **Leer [`GUIA_PROTOCOLO_VALIDADO.md`](GUIA_PROTOCOLO_VALIDADO.md) antes de ejecutar experimentos.** Los scripts `experimento_completo.py` y `experimento_escalabilidad.py` son exploratorios históricos y NO aplican filtrado A3 ni constituyen la prueba final.
+
 # TopicosGVdD
 
 **Búsqueda aproximada de perfiles de expresión génica similares con proyecciones aleatorias, SimHash y LSH para la clasificación del tipo de cáncer (TCGA Pan-Cancer)**

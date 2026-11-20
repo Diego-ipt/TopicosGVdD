@@ -7,10 +7,12 @@ name = "tcgaknn"
 version = "0.1.0"
 description = "Búsqueda aproximada de perfiles ómicos de TCGA con sketches en streaming"
 requires-python = ">=3.11"
-dependencies = ["numpy>=2.0", "pandas", "openpyxl"]
+dependencies = ["numpy>=2.0", "pandas", "openpyxl", "scipy>=1.12", "scikit-learn>=1.4"]
 
 [project.optional-dependencies]
 test = ["pytest"]
+plot = ["matplotlib>=3.8"]
+performance = ["numba>=0.60", "psutil>=5.9"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -260,12 +260,18 @@ def evaluate_expression(data: dict[str, Any], sizes: Sequence[int], k: int = 10,
     Pq = P[q]
     SHq = pack_bits(bits[q, :256])
     rows: list[dict] = []
-    # w de E2LSH: calibrado una vez con la distancia al k-ésimo vecino exacto de las consultas
-    calib_base = order[: min(1000, order.size)]
+    # Calibración EXPLORATORIA de w exclusivamente dentro de la base.
+    # ANTES se usaba q (consultas evaluadas) y contaminaba los resultados.
+    # El protocolo final separado está en experimento_validado.py.
+    n_cal_q = min(50, max(1, order.size // 10))
+    cal_q = order[:n_cal_q]
+    calib_base = order[n_cal_q:n_cal_q + min(1000, order.size - n_cal_q)]
+    if calib_base.size < k:
+        raise ValueError("Faltan elementos de base para calibrar w sin usar las consultas evaluadas")
     w = {}
     for p, metric in ((2, "l2"), (1, "l1")):
         ex = ExactKNN(metric).fit(Z[calib_base])
-        _, d = ex.query(Z[q[: min(50, q.size)]], k)[:2]
+        _, d = ex.query(Z[cal_q], k)[:2]
         w[p] = suggest_w(d[:, -1])
     for n in sizes:
         if n > order.size:

@@ -149,6 +149,17 @@ class PCAKNN:
             return 0
         return int(self.pca_.components_.nbytes + self.pca_.mean_.nbytes + self.Y_.nbytes)
 
+    def resident_bytes(self) -> int:
+        """RAM principal retenida: índice + arreglo de distancias + base para refit.
+
+        `index_bytes()` mantiene su contrato (memoria del índice comprimido),
+        y esta propiedad captura el coste de `keep_data=True` que antes faltaba
+        al comparar consumo real de memoria entre algoritmos.
+        """
+        return (self.index_bytes()
+                + (0 if self._y_sq is None else self._y_sq.nbytes)
+                + (0 if self._Xn is None else self._Xn.nbytes))
+
     def refit_time(self, X_nuevo: np.ndarray, *, update: bool = False) -> float:
         """Segundos que cuesta reajustar PCA tras agregar ``X_nuevo`` a la base.
 
