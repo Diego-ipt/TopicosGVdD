@@ -40,6 +40,7 @@ Referencias de las fórmulas:
 from __future__ import annotations
 
 import time
+from pathlib import Path
 from collections.abc import Callable, Sequence
 from typing import Any
 
@@ -336,6 +337,8 @@ class StreamingExactKNN:
         fit_mask: np.ndarray | None = None,
         transform: Callable[[np.ndarray], np.ndarray] | None = None,
         batch_size: int = 256,
+        gram_path: Path | str | None = None,
+        l1_path: Path | str | None = None,
     ):
         self.n_samples = int(n_samples)
         self.query_idx = np.asarray(query_idx, dtype=np.int64)
@@ -355,8 +358,12 @@ class StreamingExactKNN:
         nq, nb = self.query_idx.size, self.base_idx.size
         self._need_dot = any(m != "l1" for m in self.metrics)
         self._need_l1 = "l1" in self.metrics
-        self.G = np.zeros((nq, nb), dtype=np.float64) if self._need_dot else None
-        self.L1 = np.zeros((nq, nb), dtype=np.float64) if self._need_l1 else None
+        # Matrices Q×B respaldadas en disco (mmap): no ocupan RAM de forma obligatoria.
+        from numpy.lib.format import open_memmap
+        self.G = (open_memmap(str(gram_path), mode="w+", dtype=np.float64, shape=(nq, nb))
+                  if gram_path is not None else np.zeros((nq, nb), dtype=np.float64)) if self._need_dot else None
+        self.L1 = (open_memmap(str(l1_path), mode="w+", dtype=np.float64, shape=(nq, nb))
+                   if l1_path is not None else np.zeros((nq, nb), dtype=np.float64)) if self._need_l1 else None
         self.sq_q = np.zeros(nq, dtype=np.float64)
         self.sq_b = np.zeros(nb, dtype=np.float64)
         self.sum_q = np.zeros(nq, dtype=np.float64)

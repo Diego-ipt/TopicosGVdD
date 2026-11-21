@@ -1,229 +1,143 @@
-> **ACTUALIZACIÓN - revisión técnica 19/11/2026:** existe un flujo nuevo con cruce A1+A2+A3, divisiones train/val/test, ajuste exclusivo en training, calibración en validación y evaluación final independiente. **Leer [`GUIA_PROTOCOLO_VALIDADO.md`](GUIA_PROTOCOLO_VALIDADO.md) antes de ejecutar experimentos.** Los scripts `experimento_completo.py` y `experimento_escalabilidad.py` son exploratorios históricos y NO aplican filtrado A3 ni constituyen la prueba final.
+# TCGA — escalabilidad de k-NN/LSH con streaming
 
-# TopicosGVdD
+Proyecto de Tópicos en Grandes Volúmenes de Datos (2026). Parte de **correcciones-streaming** y aplica el feedback experimental sobre reducción de candidatos, calidad del voto, bases estratificadas, consultas completas, tiempos de exacto y resultados CSV.
 
-**Búsqueda aproximada de perfiles de expresión génica similares con proyecciones aleatorias, SimHash y LSH para la clasificación del tipo de cáncer (TCGA Pan-Cancer)**
+## Metodología
 
-Proyecto semestral del curso **Tópicos en Grandes Volúmenes de Datos (503302)**, Universidad de Concepción, 2026.
+La cohorte se construye mediante **A1 ∩ A2 ∩ A3**, con una alícuota tumoral aprobada por paciente, y se particiona en train/val/test sin compartir pacientes. Los flags A3 `Do_not_use` y `AWG_excluded_because_of_pathology` con `True`/`1` causan exclusión; no hay políticas adicionales. La matriz A1 se lee **gen por gen**, aplica `log2(max(x,0)+1)`, calcula media y desviación **solo con train**, imputa ausentes y acumula proyecciones y las distancias exactas de consultas×base en archivos mmap. No existe matriz densa pacientes×genes en el flujo principal.
 
-|             |                                                   |
-| ----------- | ------------------------------------------------- |
-| Profesora   | Cecilia Hernández                                |
-| Ayudante    | Álvaro Guzmán                                   |
-| Integrantes | Antonia Montero · Diego Pérez · Angie Ramírez |
+El orden de la base es **anidado y estratificado**: incorpora un paciente de cada clase de entrenamiento al comienzo (si alcanza n) y agrega el resto por déficits de cuota, manteniendo `B_n ⊂ B_{n+1}`. El entrenamiento completo define los parámetros por gen para todos los n; así el experimento aísla el efecto del tamaño de la base, no cambios en normalización. Validación calibra y selecciona por n; test solo utiliza parámetros congelados.
 
----
+| Método | Métrica de referencia | Hash | Re-ranking |
+| --- | --- | --- | --- |
+| kNN exacto coseno | Coseno de Z normalizado por paciente | No aplica | Exacto |
+| LSH coseno por bandas | Coseno | `L × r` bits SimHash | **Todas** las columnas disponibles del bloque de réplica (`m=512` por defecto) |
+| E2LSH p=2 (Gauss) | L2 de Z normalizado por paciente, mismo orden que coseno | `L × r` hashes p-estables | Todas las columnas Gaussianas por réplica (`256` por defecto) |
+| kNN exacto L1 | L1 sobre Z sin normalización por paciente | No aplica | Exacto |
+| E2LSH p=1 (Cauchy) | L1 sobre Z | `L × r` hashes p-estables | Mediana en todas las columnas Cauchy por réplica |
 
-## 1. Problema
+**No se confunden** los vecinos L1 con los de coseno. RP/PCA no son métodos principales.
 
-Cada tumor del TCGA se describe con la expresión de **≈ 20.500 genes**. Dado el perfil de un tumor nuevo, queremos:
-
-1. **Recuperar los k pacientes más parecidos** de una base de datos (búsqueda k-NN por similitud coseno).
-2. **Inferir el tipo de cáncer** (33 tipos TCGA) por voto de esos vecinos.
-
-| Magnitud                     | Valor                                                                                 |
-| ---------------------------- | ------------------------------------------------------------------------------------- |
-| Muestras × genes            | ≈ 11.000 × 20.500 ≈ 2,3 × 10⁸ valores (≈ 0,9 GB en float32; ≈ 1,8 GB en texto) |
-| Una consulta exacta          | ≈ n·d ≈ 2,3 × 10⁸ operaciones                                                    |
-| Todos los pares de pacientes | ≈ 1,2 × 10¹² operaciones                                                          |
-| Memoria por paciente         | 82.000 B (exacto) → 1.024 B (RP, m = 256) → 32 B (SimHash, b = 256)                 |
-
-El cuello de botella no es almacenar la matriz (cabe en RAM), sino **comparar vectores de 20.000 dimensiones** y cómo crece ese costo al aumentar el número de pacientes.
-
-### Pregunta de investigación
-
-> ¿En qué medida las representaciones compactas (proyecciones aleatorias y firmas SimHash) y LSH permiten reducir el costo de buscar perfiles de expresión génica similares, manteniendo alta recuperación de vecinos y preservando la información necesaria para identificar el tipo de cáncer?
-
-El proyecto es **experimental y comparativo**: no asumimos que LSH sea más rápido. Con n ≈ 10.000 es probable que la búsqueda exacta con BLAS sea competitiva; medimos **en qué condiciones** conviene cada método y cuánta calidad se sacrifica. Un resultado negativo bien medido también es un resultado.
-
----
-
-## 2. Métodos
-
-| Código          | Método                                        | Idea                                                                 | Consulta              | Memoria (n = 11.000) |
-| ---------------- | ---------------------------------------------- | -------------------------------------------------------------------- | --------------------- | -------------------- |
-| **EX**     | k-NN exacto (línea base)                      | Coseno contra todos los perfiles, con BLAS                           | O(n·d)               | ≈ 0,9 GB            |
-| **RP**     | Proyección aleatoria (Johnson–Lindenstrauss) | 20.500 → m dimensiones (m = 64…1.024) y k-NN ahí                  | O(d·m + n·m)        | ≈ 11 MB (m = 256)   |
-| **SH**     | SimHash (Charikar, 2002)                       | Firma de b bits por paciente; distancia de Hamming (XOR + popcount)  | O(d·b + n·b/64)     | ≈ 352 KB (b = 256)  |
-| **LSH**    | LSH por bandas sobre bits SimHash              | L tablas de r bits; solo se re-ordenan los candidatos que colisionan | O(d·L·r + \|C\|·d) | L·n IDs + tablas    |
-| **PCA**    | PCA aleatorizada + k-NN (referencia)           | Reducción dependiente de los datos; responde "¿por qué no PCA?"   | O(d·m + n·m)        | ≈ RP                |
-| **VOTO**   | Clasificación por voto de los k vecinos       | Mayoría simple (variante ponderada por similitud)                   | O(k)                  | —                   |
-| E2LSH *(opc.)* | LSH p-estable (Datar et al., 2004)             | h(v) = ⌊(a·v + β)/w⌋                                             | O(d·r·L + \|C\|·d) | L·n IDs             |
-| MBK *(opc.)*   | Mini-batch k-means sobre proyecciones o firmas | Clustering de una pasada; ARI contra las etiquetas                   | —                    | O(K·m)              |
-
-RP, SH y LSH comparten **una misma matriz aleatoria Ω (d × 1.024)** por semilla, de modo que los métodos quedan anidados y sus diferencias no se deben a aleatoriedad distinta. RP, SH y LSH se implementan a mano; scikit-learn se usa solo para métricas, PCA, MBK y como referencia en los tests. No se evalúan bibliotecas de ANN (FAISS, Annoy).
-
-**Descartados:** MinHash (diseñado para Jaccard entre conjuntos; los perfiles son vectores continuos) y árboles k-d / ball tree (degeneran a fuerza bruta en alta dimensión).
-
-```
-Matriz de expresión (n × 20.500)
-        │  recorte a 0 → log2(x+1) → filtro de genes → z-score por gen → L2 por muestra
-        ▼
- ┌──────────────┬──────────────────┬────────────────────┬───────────────────────────┐
- │ EX           │ RP               │ SH                 │ LSH                       │
- │ coseno en d  │ x·Ω[:, :m]/√m    │ signo(x·Ω[:, :b])  │ bandas sobre signo(x·Ω)   │
- │              │ + k-NN en m      │ + Hamming lineal   │ → candidatos → re-ranking │
- └──────────────┴──────────────────┴────────────────────┴───────────────────────────┘
-        ▼
- Top-k vecinos → recall@k vs EX · voto de etiquetas → tipo de cáncer
-```
-
----
-
-## 3. Datos
-
-Fuente: **TCGA PanCanAtlas**, NCI Genomic Data Commons — [https://gdc.cancer.gov/about-data/publications/pancanatlas](https://gdc.cancer.gov/about-data/publications/pancanatlas)
-
-| #  | Archivo                                                       | Uso                                                                                                             |
-| -- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| A1 | `EBPlusPlusAdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.tsv` | Matriz de expresión RNA-Seq normalizada y ajustada por lote (≈ 20.500 genes × ≈ 11.000 muestras, ≈ 1,8 GB) |
-| A2 | `TCGA-CDR-SupplementalTableS1.xlsx`                         | Etiqueta de tipo de cáncer por paciente (TCGA Clinical Data Resource)                                          |
-| A3 | `merged_sample_quality_annotations.tsv`                     | Filtro de calidad de muestras                                                                                   |
-
-No se usan metilación, miRNA, RPPA, número de copias, mutaciones ni PARADIGM.
-
-**Reglas principales**
-
-- Cruce por **barcode de paciente** (primeros 12 caracteres, `TCGA-XX-XXXX`).
-- **Una muestra por paciente:** tipo 01 (tumor primario); 03 en LAML; 06 (o 01) en SKCM. Las muestras normales (11) se excluyen.
-- Los estadísticos del preprocesamiento se ajustan **solo con la base** (regla anti-fuga).
-- Particiones por paciente y estratificadas por tipo: **Q_test = 500** consultas (reporte), **Q_val = 250** (calibración) y bases anidadas **B_n**, n ∈ {250, 500, 1.000, 2.000, 4.000, 8.000, n_max}, con `split_seed = 2026`.
-- Verdad de terreno única: k-NN exacto por coseno con k_max = 50.
-- Tipos pequeños (p. ej. CHOL ≈ 36, DLBC ≈ 48 muestras en cBioPortal) se mantienen y se reporta además un escenario sin tipos de menos de 50 muestras.
-
-**Descarga.** Los datos **no se versionan en git**. Se descargan con la [GDC Data Transfer Tool](https://gdc.cancer.gov/access-data/gdc-data-transfer-tool) (v2.3) a partir del manifiesto *Open Access* de la página PanCanAtlas (`pancan_manifest.txt`, columnas `id`, `filename`, `md5`, `size`). Cada archivo queda en una carpeta con su UUID:
+## Instalación
 
 ```bash
-gdc-client download -m pancan_manifest.txt
+python -m pip install -e '.[test,plot]'
+# Opcional: numba/psutil para rendimiento del exacto L1
+python -m pip install -e '.[performance]'
 ```
 
-El manifiesto lista 14 archivos, de los cuales el proyecto solo necesita estos tres (para no bajar las ómicas que no se usan, se puede usar un manifiesto con solo estas filas):
-
-| #  | UUID GDC                                 | MD5                                  | Tamaño         |
-| -- | ---------------------------------------- | ------------------------------------ | --------------- |
-| A1 | `3586c0da-64d0-4b74-a449-5ff4d9136611` | `02e72c33071307ff6570621480d3c90b` | 1.882.540.959 B |
-| A2 | `1b5f413e-a8d1-4d10-92eb-7c4ae739ed81` | `a4591b2dcee39591f59e5e25a6ce75fa` | 2.945.129 B     |
-| A3 | `1a7d7be8-675d-4e60-a105-19d4121bdebf` | `05ddd2270fb1fb24fbdc2fe9bf7384e5` | 8.463.670 B     |
-
-**Verificado (22/10/2026)** tras la descarga: los MD5 de A1–A3 coinciden con el manifiesto.
-
-- **A1:** 20.531 genes × 11.069 muestras (genes en filas). La primera columna es `gene_id` con formato `"SYMBOL|EntrezID"` entre comillas; 29 genes no tienen símbolo (`?|EntrezID`). Los encabezados son barcodes de alícuota (`TCGA-OR-A5J1-01A-11R-A29S-07`).
-- **A3:** columnas `patient_barcode`, `aliquot_barcode`, `cancer type`, `platform`, `AWG_excluded_because_of_pathology`, `Do_not_use`, entre otras; 10.439 filas con `platform = IlluminaHiSeq_RNASeqV2` (y 646 de `IlluminaGA_RNASeqV2`).
-
-Los archivos van en `data/raw/` y su hash en `data/CHECKSUMS.sha256` (sí versionado). Al resto del grupo se le distribuyen los `.npy` procesados por Drive o pendrive; para equipos con poca conexión existe un subconjunto de desarrollo `X_dev_f32.npy` (≈ 1.250 pacientes, ≈ 103 MB).
-
----
-
-## 4. Experimentos y métricas
-
-| Exp.               | Pregunta                                                                                                            |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------- |
-| E0                 | ¿Qué tan difícil es el problema? (distribución de cosenos, pureza de vecinos exactos)                           |
-| E1a / E1b          | Costo de EX vs n · ¿ayuda filtrar genes (top-G)?                                                                  |
-| E2                 | ¿Se cumple JL? Distorsión de distancias vs m, contra la cota teórica                                             |
-| E3                 | RP para k-NN (y PCA de referencia)                                                                                  |
-| E4                 | SimHash con búsqueda lineal en Hamming: error angular, recall vs b                                                 |
-| E5                 | Calibración de LSH: grilla L × r, recall vs fracción de candidatos                                               |
-| **E6**       | **Escalabilidad:** tiempo de consulta y construcción vs n; punto de cruce n*                                 |
-| **E7**       | **Clasificación:** exactitud, F1-macro, exactitud balanceada, acuerdo de voto, matriz de confusión 33 × 33 |
-| E8 / E9 *(opc.)* | E2LSH vs SH · subtipos PAM50 en mama y clustering (ARI)                                                            |
-
-**Métricas:** recall@k frente a EX, candidatos examinados, tiempo por consulta (mediana y p95), tiempo de construcción, memoria del índice (teórica y medida), exactitud, F1-macro, exactitud balanceada y acuerdo de voto. Los tiempos se miden en una misma máquina, con 1 hilo de BLAS, una pasada de calentamiento y 5 pasadas medidas; los barridos usan 5 semillas (10 en las configuraciones finales).
-
-**Criterios de éxito** (se congelan el 08/11 en `experiments/LOG.md`): recall@10 ≥ 0,90; fracción de candidatos ≤ 20 % (LSH); Δexactitud ≤ 2 pp y ΔF1-macro ≤ 3 pp respecto de EX; ≥ 10× menos memoria por paciente; speedup > 1 con n_max.
-
----
-
-## 5. Estructura del repositorio (planificada)
-
-```
-TopicosGVdD/
-├── README.md
-├── pyproject.toml             # paquete tcgaknn (pip install -e .)
-├── environment.yml            # entorno conda
-├── configs/                   # un YAML por experimento (base, avance_1000, sweep_*, scaling_n, classification)
-├── data/
-│   ├── raw/                   # A1–A3 (no versionado)
-│   ├── processed/             # .npy, samples.csv, splits/, gt/ (no versionado)
-│   ├── CHECKSUMS.sha256       # versionado
-│   └── README.md              # origen, URL y fecha de descarga
-├── src/tcgaknn/
-│   ├── io.py  preprocess.py  splits.py
-│   ├── exact.py  projection.py  simhash.py  lsh.py  pca_ref.py  e2lsh.py
-│   ├── classify.py  metrics.py  timing.py  runner.py
-│   └── c/hamming.c            # opcional (popcount en C)
-├── scripts/                   # download_data, preprocess, ground_truth, describe_data,
-│                              # run_experiment, plot_*, make_tables
-├── experiments/LOG.md         # bitácora de corridas y decisiones
-├── results/                   # raw/ (CSV), figures/, tables/
-├── report/                    # informe y diapositivas
-└── tests/                     # pytest con datos sintéticos
-```
-
-Todos los índices exponen la misma interfaz: `fit(X)` y `query(Q, k) -> (ids, scores, stats)`. **Regla de oro:** toda cifra o figura del informe sale de `scripts/` a partir de un CSV en `results/raw/`; los notebooks son solo para explorar.
-
----
-
-## 6. Instalación y reproducción
-
-> Los comandos describen el flujo previsto; se irán habilitando a medida que se suban los módulos.
+## Comandos — desarrollo con el demo sintético
 
 ```bash
-conda env create -f environment.yml && conda activate tcgaknn
-pip install -e .
-python -c "import numpy as np; assert hasattr(np, 'bitwise_count')"   # requiere NumPy >= 2.0
+python scripts/preparar_cohorte.py demo/raw --out demo/processed --max-genes 90
+python scripts/escalabilidad.py validar --data demo/processed --out demo/results --k 3 --sizes 5 10 18 --queries-per-phase 0
 
-# Datos
-python scripts/download_data.py --verify-only
-python scripts/preprocess.py metadata  configs/base.yaml
-python scripts/preprocess.py matrix    configs/base.yaml
-python scripts/preprocess.py splits    configs/base.yaml
-python scripts/preprocess.py transform configs/base.yaml --G all
-python scripts/ground_truth.py configs/base.yaml --G all
-python scripts/describe_data.py configs/base.yaml
-
-# Tests y experimentos
-pytest -q
-python scripts/run_experiment.py configs/avance_1000.yaml
-python scripts/run_experiment.py configs/scaling_n.yaml
-python scripts/run_experiment.py configs/classification.yaml
-
-# Figuras y tablas
-python scripts/plot_recall_vs_time.py results/raw/*.csv
-python scripts/plot_scaling.py results/raw/scaling_n.csv
-python scripts/make_tables.py results/raw/
+# Revisar demo/results/validation.csv y configuraciones_congeladas.json
+python scripts/escalabilidad.py test --data demo/processed --out demo/results
+python scripts/graficar_escalabilidad.py --csv demo/results/test_final.csv
 ```
 
-En Windows se ejecutan los mismos comandos `python` en el mismo orden. Para compilar el núcleo opcional en C se recomienda WSL/Linux con gcc.
+El demo sintético no permite concluir resultados sobre pacientes reales.
 
-### Inventario de hardware
+## Comandos — datos reales TCGA
 
-Los tiempos que se comparan salen siempre de la **máquina de referencia**.
+```bash
+# Por defecto --cols=512, --lp-cols=256, --queries-per-phase=0 (TODAS).
+python scripts/preparar_cohorte.py data/raw --out data/processed \
+    --seed 2026 --transform log2clip --cols 512 --lp-cols 256
+# Ajuste de (L,r,w) solo en validación:
+python scripts/escalabilidad.py validar --data data/processed \
+    --out results/escalabilidad --k 10 --verify-hash
 
-| Integrante      | CPU | Núcleos / hilos | RAM | SO | Backend BLAS | Disco libre |
-| --------------- | --- | ---------------- | --- | -- | ------------ | ----------- |
-| Antonia Montero |     |                  |     |    |              |             |
-| Diego Pérez    |     |                  |     |    |              |             |
-| Angie Ramírez  |     |                  |     |    |              |             |
+# Test solo después de fijar y revisar la selección:
+python scripts/escalabilidad.py test --data data/processed \
+    --out results/escalabilidad --verify-hash
 
-Máquina de referencia: (por definir)
+python scripts/graficar_escalabilidad.py --csv results/escalabilidad/test_final.csv
+```
 
----
+El tamaño creciente predeterminado es 50, 100, 250, 500, 1.000, 2.000, 4.000 y el total de train (hasta el máximo disponible); con muchos cánceres, n=50 es un caso de pocas muestras por clase: consultar `base_class_counts` antes de interpretarlo. `--queries-per-phase N` limita las consultas de cada fase **solo si se solicita** (útil para desarrollo); con `0` se usan todas.
 
-## Referencias
+### Calibración y selección
 
-1. Indyk, P., y Motwani, R. (1998). Approximate nearest neighbors: Towards removing the curse of dimensionality. *STOC '98*, 604–613. https://doi.org/10.1145/276698.276876
-2. Charikar, M. S. (2002). Similarity estimation techniques from rounding algorithms. *STOC '02*, 380–388. https://doi.org/10.1145/509907.509965
-3. Datar, M., Immorlica, N., Indyk, P., y Mirrokni, V. S. (2004). Locality-sensitive hashing scheme based on p-stable distributions. *SCG '04*, 253–262. https://doi.org/10.1145/997817.997857
-4. Slaney, M., y Casey, M. (2008). Locality-sensitive hashing for finding nearest neighbors [Lecture notes]. *IEEE Signal Processing Magazine*, 25(2), 128–131. https://doi.org/10.1109/MSP.2007.914237
-5. Leskovec, J., Rajaraman, A., y Ullman, J. D. (2014). *Mining of Massive Datasets*.
-6. Xie, H., Li, J., Zhang, Q., y Wang, Y. (2016). Comparison among dimensionality reduction techniques based on random projection for cancer classification. *Computational Biology and Chemistry*, 65, 165–172. https://doi.org/10.1016/j.compbiolchem.2016.09.010
-7. Nguyen, H., et al. (2021). SMRT: Randomized data transformation for cancer subtyping and big data analysis. *Frontiers in Oncology*, 11, 725133. https://doi.org/10.3389/fonc.2021.725133
-8. Wu, X., Wang, J., y Wan, S. (2026). RPSLearner: A novel approach based on random projection and deep stacking learning for categorizing non-small cell lung cancer. *Advanced Intelligent Systems*, 8(2), e202500635. https://doi.org/10.1002/aisy.202500635
-9. Hoadley, K. A., et al. (2018). Cell-of-origin patterns dominate the molecular classification of 10,000 tumors from 33 types of cancer. *Cell*, 173(2), 291–304. https://doi.org/10.1016/j.cell.2018.03.022
-10. Weinstein, J. N., y The Cancer Genome Atlas Research Network. (2013). The Cancer Genome Atlas Pan-Cancer analysis project. *Nature Genetics*, 45(10), 1113–1120. https://doi.org/10.1038/ng.2764
+`w_ref` es la **mediana de la distancia exacta al k-ésimo vecino en validación** (sin multiplicación automática ×4), y se evalúa `w=w_ref×{0.25, 0.5, 0.75, 1.0}`. La grilla E2LSH incluye `(L,r)=(8,2),(16,2),(16,4),(32,4),(16,8),(32,8)` hasta el máximo `--lp-cols // replicas` disponible. En LSH coseno se comprueban `(8,4),(16,4),(16,6),(32,6)`, siempre usando **todas** las columnas disponibles para re-ranking. Las columnas de hash y re-ranking se informan por separado.
 
-**Recursos de datos**
+**Política vigente preregistrada:** accuracy no más de 0,02 bajo su propio exacto; F1 macro no más de 0,03; cobertura ≥0,90; sensibilidad por clase (≥10 consultas), pérdida máxima 0,05; **recall@k≥0,90**; candidatos≤50 %. El recall se conserva como requisito rígido, aunque pueda no alcanzarse: si no hay configuración que lo satisfaga, se informa. Si falla cualquier objetivo, la configuración congelada alternativa es **solo diagnóstica**, con `qualified=false` y `selection_reason`. Los umbrales no se alteran tras observar test.
 
-- NCI Genomic Data Commons. *PanCanAtlas Publications*. https://gdc.cancer.gov/about-data/publications/pancanatlas
-- cBioPortal for Cancer Genomics. *Datasets*. https://www.cbioportal.org/datasets
+La concordancia del voto con exacto y la accuracy real se reportan **por separado**. Se congelan parámetros por **método, réplica y n**; el test no reoptimiza.
+
+## Benchmark exacto desde genes (opcional, puede ser costoso)
+
+Sin `--exact-benchmark-raw` el exacto tiene `latency_ms_median` medida con la lectura de una fila **de distancias precalculadas** y el top-k. No es el tiempo de calcular distancias a partir de genes. Para medir el costo auténtico de búsqueda exacta en streaming para **cada tamaño n y cada métrica**, añadir la carpeta original de A1/A2/A3:
+
+```bash
+python scripts/escalabilidad.py validar --data data/processed \
+    --out results/escalabilidad --k 10 --sizes 50 250 1000 \
+    --exact-benchmark-raw data/raw
+
+# En la ejecución final de test (una sola vez):
+python scripts/escalabilidad.py test --data data/processed \
+    --out results/escalabilidad --exact-benchmark-raw data/raw
+```
+
+**Importante:** esta opción vuelve a leer A1 *para cada combinación de tamaño n y métrica*. Sigue siendo streaming y usa mmap para scores, pero su costo puede ser elevado. Genera `exact_streaming_val.csv` o `exact_streaming_test.csv` con tiempos `accumulate_seconds`, `topk_seconds`, `total_seconds_with_io` y amortización por consulta. `validation.csv` y `test_final.csv` agregan `exact_stream_ms_per_query_amortized` y `amortized_ratio_vs_exact_stream`.
+
+**Precaución:** este cociente es **exploratorio, no una aceleración end-to-end**. La consulta ANN mide búsqueda sobre **sketch ya precalculado**, mientras que la búsqueda exacta de novo incluye todas las operaciones de comparación en los genes. Para una aceleración end-to-end rigurosa haría falta instrumentar también la generación de sketches y amortizar construcción/lectura de datos bajo el mismo escenario. No afirmar que el ratio aislado demuestra mejor tiempo de sistema completo.
+
+## Resultados
+
+- Preparación: `splits.npz`, `sketches.npz`, `gram.npy`, `l1.npy` (mmap), `metadata.json`, auditorías de cohorte. **No borrar ni alterar** los archivos ya usados en validación/test.
+- Validación: `validation.json`, **`validation.csv`** (fila por método, n y réplica), `configuraciones_congeladas.json`.
+- Test: `test_final.json`, **`test_final.csv`** y figuras opcionales con `graficar_escalabilidad.py`.
+- Benchmark exacto desde genes (opcional): `exact_streaming_val.csv` / `exact_streaming_test.csv`.
+
+`process_peak_rss_mib_cumulative` es el RSS máximo **acumulado del proceso**, no memoria aislada de cada algoritmo. `resident_bytes_estimate` no incluye todas las estructuras Python ni los sketches compartidos. La ausencia de candidatos se informa en `coverage` y `fraction_with_less_than_k` (no se hace búsqueda exhaustiva de respaldo). Las consultas y el split son iguales para todos los métodos.
+
+## Pruebas
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 PYTHONPATH=src python -m pytest -q
+```
+
+Ver `GUIA_PROTOCOLO_VALIDADO.md`, `CAMBIOS_FEEDBACK.md` y `REGISTRO_VERIFICACION.md`.
+
+## Segunda revisión: CSV, objetivos preregistrados y benchmark pareado
+
+Leer **`CAMBIOS_FEEDBACK_2.md`** antes de interpretar resultados. Se solucionó
+el bug de `n` en los CSV y se recuperó la política de calidad original
+(accuracy Δ≥−0.02, F1 macro Δ≥−0.03, sensibilidad por clase Δ≥−0.05,
+recall@k≥0.90, cobertura≥0.90, candidatos≤50 %). Si no se cumple, se informa;
+no se alteran umbrales tras examinar test.
+
+Para regenerar CSV antiguos desde el JSON (sin volver a calcular algoritmos):
+
+```bash
+python scripts/reconstruir_csv.py results/escalabilidad/validation.json
+python scripts/reconstruir_csv.py results/escalabilidad/test_final.json
+```
+
+La corrida final con **nueva política** requiere volver a validar (y después
+probar test con un conjunto genuinamente no observado, si está disponible).
+No reutilizar `configuraciones_congeladas.json` generado por la versión previa.
+
+**Para la comparación temporal pareada por consulta**, utilizar el benchmark
+opcional, que construye una matriz densa temporal solamente para medir el
+exacto y mide la proyección + búsqueda ANN de la misma consulta:
+
+```bash
+OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1 NUMBA_NUM_THREADS=1 \
+python scripts/benchmark_pareado.py --data data/processed --raw data/raw \
+  --selection results/escalabilidad/configuraciones_congeladas.json \
+  --out results/escalabilidad/pareado_test.csv --phase test --queries 32
+
+python scripts/graficar_escalabilidad.py \
+  --csv results/escalabilidad/test_final.csv \
+  --pareado results/escalabilidad/pareado_test.csv
+```
+
+El exacto usa una base densa precargada, ANN usa pesos de proyección
+precargados; ninguno mide E/S de archivos ni preprocesamiento nuevo de A1.
+Es una comparación online de consulta, no end-to-end desde datos crudos.
+`--queries 0` usa todo el test; `--max-dense-mib` limita la memoria estimada.
+El antiguo `--exact-benchmark-raw` permanece para medir el replay streaming,
+pero no es comparable directamente con latencia de consulta ANN.

@@ -15,7 +15,6 @@ from typing import Iterable
 
 import numpy as np
 
-from .perfil import CANONICAL_CODE, TUMOR_CODES, load_labels, patient_barcode, sample_type_code
 from .stream import StreamService
 
 
@@ -23,14 +22,34 @@ def _id(v: object) -> str:
     return str(v).strip().upper()
 
 
-def _flag(v: object, field: str) -> bool:
-    """True = excluido. Fallar ante valores desconocidos evita aceptaciones silenciosas."""
-    s = str(v).strip().lower() if v is not None else ""
-    if s in {"0", "0.0", "false", "f", "no", "n", "", "nan", "none", "na"}:
-        return False
-    if s in {"1", "1.0", "true", "t", "yes", "y"}:
-        return True
-    raise ValueError(f"A3: valor desconocido {v!r} en {field}; revisar manualmente")
+TUMOR_CODES = ("01", "03", "06")
+CANONICAL_CODE = {"LAML": "03", "SKCM": "06"}
+
+
+def patient_barcode(barcode: str) -> str:
+    return barcode[:12]
+
+
+def sample_type_code(barcode: str) -> str | None:
+    if len(barcode) >= 15 and barcode[12] == "-" and barcode[13:15].isdigit():
+        return barcode[13:15]
+    return None
+
+
+def load_labels(root: Path | str) -> dict[str, str]:
+    """A2: tipo de cáncer por barcode de paciente, leído como stream."""
+    labels = {}
+    for rec in StreamService(root, data_types=["clinical_cdr"]):
+        if rec.kind == "table_row" and rec.key:
+            label = rec.fields.get("type")
+            if label is not None and str(label).strip():
+                labels[str(rec.key).strip().upper()] = str(label).strip()
+    return labels
+
+
+def _flag(v: object) -> bool:
+    """Excluye solo flags verdaderos (texto True o 1); los demás no marcan exclusión."""
+    return str(v).strip().lower() in {"true", "1", "1.0"}
 
 
 def _is_rna_platform(v: object) -> bool:
@@ -52,6 +71,7 @@ def load_quality(root: Path | str, *, check_annotations: bool = False) -> tuple[
     No se asume que una anotación de otra plataforma sirva para RNA.
     Si A3 usa una codificación de plataforma inesperada, se lanza un error:
     nunca se acepta silenciosamente un cruce de otra tecnología.
+    Los flags A3 son booleanos: solo True/1 excluye, sin políticas adicionales.
     """
     exact: dict[str, list[dict]] = defaultdict(list)
     sample: dict[str, list[dict]] = defaultdict(list)
@@ -71,7 +91,7 @@ def load_quality(root: Path | str, *, check_annotations: bool = False) -> tuple[
         for field in ("Do_not_use", "AWG_excluded_because_of_pathology"):
             if field not in fields:
                 raise ValueError(f"A3 requiere la columna {field!r}")
-            if _flag(fields[field], field):
+            if _flag(fields[field]):
                 reasons.append(field)
         if check_annotations:
             for field in ("patient_annotation", "sample_annotation", "aliquot_annotation"):

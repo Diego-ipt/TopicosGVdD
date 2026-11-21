@@ -46,6 +46,43 @@ def make_split(patient_ids: list[str], labels: np.ndarray, *, seed: int = 2026,
     return split
 
 
+def stratified_nested_order(train: np.ndarray, labels: np.ndarray, *, seed: int = 2026) -> np.ndarray:
+    """Permutación anidada: representación inicial de clases y luego cuotas.
+
+    Se selecciona primero una muestra de cada clase, cuando hay suficientes
+    pacientes. Posteriormente se añade la clase con mayor déficit respecto a
+    su frecuencia dentro de train. Nunca se utilizan val/test. Las bases B_n
+    siguen siendo prefijos de la MISMA permutación, sin re-muestreo por n.
+    """
+    train = np.asarray(train, dtype=np.int64)
+    labels = np.asarray(labels)
+    if train.ndim != 1 or len(np.unique(train)) != len(train):
+        raise ValueError("train debe contener índices únicos en una dimensión")
+    rng = np.random.default_rng(seed)
+    classes = np.unique(labels[train])
+    groups = []
+    for label in classes:
+        indices = train[labels[train] == label].copy()
+        rng.shuffle(indices)
+        groups.append(indices)
+    # Desempate reproducible, independiente del orden alfabético de las clases.
+    priority = rng.permutation(len(groups))
+    counts = np.zeros(len(groups), dtype=np.int64)
+    sizes = np.array([len(g) for g in groups], dtype=np.int64)
+    result = []
+    for cls in priority:
+        result.append(int(groups[cls][0]))
+        counts[cls] += 1
+    while len(result) < len(train):
+        t = len(result) + 1
+        deficits = t * sizes / len(train) - counts
+        deficits[counts >= sizes] = -np.inf
+        cls = int(priority[np.argmax(deficits[priority])])
+        result.append(int(groups[cls][counts[cls]]))
+        counts[cls] += 1
+    return np.asarray(result, dtype=np.int64)
+
+
 def assert_disjoint(split: Split, n: int) -> None:
     a, b, c = (set(getattr(split, part).tolist()) for part in ("train", "val", "test"))
     if a & b or a & c or b & c or (a | b | c) != set(range(n)):

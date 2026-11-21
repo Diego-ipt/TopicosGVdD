@@ -335,11 +335,15 @@ class E2LSH:
         Y: np.ndarray,
         X: np.ndarray | None = None,
         feature_ids: Sequence[str] | None = None,
+        *,
+        rerank_projections: np.ndarray | None = None,
     ) -> "E2LSH":
         """Indexa desde proyecciones ya acumuladas Y = X·A (n × r·L), p. ej. en streaming.
 
         ``X`` solo hace falta con ``rerank="d"``. ``feature_ids`` permite luego
         consultar con vectores crudos (``query``); si no, usar ``query_projections``.
+        ``rerank_projections`` permite utilizar un número mayor de columnas
+        ya acumuladas (sin emplearlas para construir las tablas hash).
         """
         t0 = time.perf_counter()
         if feature_ids is not None:
@@ -348,11 +352,13 @@ class E2LSH:
         Xf = None if X is None else as_float32_2d(X)
         if self.rerank == "d" and Xf is None:
             raise ValueError("rerank='d' necesita X para la distancia exacta")
-        self._build(np.asarray(Y, dtype=np.float64), Xf)
+        self._build(np.asarray(Y, dtype=np.float64), Xf,
+                    rerank_projections=rerank_projections)
         self.build_time_s = time.perf_counter() - t0
         return self
 
-    def _build(self, Y: np.ndarray, X: np.ndarray | None) -> None:
+    def _build(self, Y: np.ndarray, X: np.ndarray | None,
+               rerank_projections: np.ndarray | None = None) -> None:
         if X is not None and X.shape[0] != Y.shape[0]:
             raise ValueError("X e Y deben tener el mismo número de filas")
         keys = _bucket_keys(self.codes_from_projections(Y))  # (n, L)
@@ -361,7 +367,16 @@ class E2LSH:
         self._order = np.ascontiguousarray(order, dtype=np.int32)
         self._keys_sorted = np.ascontiguousarray(np.take_along_axis(keys, order.T, axis=0).T)
         self._X = X if self.rerank == "d" else None
-        self._Y = Y.astype(np.float32) if self.rerank == "proj" else None
+        if self.rerank == "proj":
+            rerank_y = Y if rerank_projections is None else np.asarray(rerank_projections, dtype=np.float64)
+            if (rerank_y.ndim != 2 or rerank_y.shape[0] != self.n or
+                    rerank_y.shape[1] < self.n_funcs or not np.isfinite(rerank_y).all()):
+                raise ValueError("rerank_projections requiere N filas, >= L*r columnas finitas")
+            self._Y = np.ascontiguousarray(rerank_y, dtype=np.float32)
+        else:
+            if rerank_projections is not None:
+                raise ValueError("rerank_projections solo es válido con rerank='proj'")
+            self._Y = None
 
     # ---------------- consulta ----------------
 
@@ -370,12 +385,14 @@ class E2LSH:
         Qf = as_float32_2d(Q)
         return self._query(self.projections(Qf), Qf, k)
 
-    def query_projections(self, Yq: np.ndarray, k: int, Q: np.ndarray | None = None) -> QueryResult:
-        """Consulta desde proyecciones Yq = Q·A (``Q`` solo hace falta con ``rerank="d"``)."""
+    def query_projections(self, Yq: np.ndarray, k: int, Q: np.ndarray | None = None,
+                          *, rerank_query_projections: np.ndarray | None = None) -> QueryResult:
+        """Consulta usando Yq para el hash y opcionalmente más columnas para re-ranking."""
         Qf = None if Q is None else as_float32_2d(Q)
         if self.rerank == "d" and Qf is None:
             raise ValueError("rerank='d' necesita Q para la distancia exacta")
-        return self._query(np.atleast_2d(np.asarray(Yq, dtype=np.float64)), Qf, k)
+        return self._query(np.atleast_2d(np.asarray(Yq, dtype=np.float64)), Qf, k,
+                           rerank_Yq=rerank_query_projections)
 
     def candidates_from_projections(self, Yq: np.ndarray) -> list[np.ndarray]:
         """Lista (por consulta) de IDs candidatos con repetición: uno por tabla en que coincide."""
@@ -393,7 +410,19 @@ class E2LSH:
             out.append(np.concatenate(segs).astype(np.int64) if segs else np.zeros(0, np.int64))
         return out
 
-    def _query(self, Yq: np.ndarray, Q: np.ndarray | None, k: int) -> QueryResult:
+    def _query(self, Yq: np.ndarray, Q: np.ndarray | None, k: int,
+               *, rerank_Yq: np.ndarray | None = None) -> QueryResult:
+        if self.rerank == "proj":
+            assert self._Y is not None
+            if rerank_Yq is None:
+                if self._Y.shape[1] != self.n_funcs:
+                    raise ValueError("debe proporcionar rerank_query_projections con todas las columnas")
+                rerank_Yq = Yq
+            else:
+                rerank_Yq = np.atleast_2d(np.asarray(rerank_Yq, dtype=np.float64))
+            if (rerank_Yq.shape != (Yq.shape[0], self._Y.shape[1]) or
+                    not np.isfinite(rerank_Yq).all()):
+                raise ValueError("rerank_query_projections: forma o valores inválidos")
         nq = Yq.shape[0]
         idx = np.full((nq, k), -1, dtype=np.int64)
         scores = np.full((nq, k), np.nan, dtype=np.float32)
@@ -408,9 +437,9 @@ class E2LSH:
                 dist = _lp_dist(Q[i], self._X[cand], self.p)
             elif self.rerank == "proj":
                 assert self._Y is not None
-                dY = self._Y[cand].astype(np.float64) - Yq[i]
+                dY = self._Y[cand].astype(np.float64) - rerank_Yq[i]
                 if self.p == 2:
-                    dist = np.sqrt(np.einsum("ij,ij->i", dY, dY) / self.n_funcs)
+                    dist = np.sqrt(np.einsum("ij,ij->i", dY, dY) / self._Y.shape[1])
                 else:
                     dist = np.median(np.abs(dY), axis=1)
             else:
