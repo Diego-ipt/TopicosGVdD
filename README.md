@@ -30,7 +30,7 @@ python -m pip install -e '.[performance]'
 
 ```bash
 python scripts/preparar_cohorte.py demo/raw --out demo/processed --max-genes 90
-python scripts/escalabilidad.py validar --data demo/processed --out demo/results --k 3 --sizes 5 10 18 --queries-per-phase 0
+python scripts/escalabilidad.py validar --data demo/processed --out demo/results --k 3 --sizes 5 10 18
 
 # Revisar demo/results/validation.csv y configuraciones_congeladas.json
 python scripts/escalabilidad.py test --data demo/processed --out demo/results
@@ -56,7 +56,7 @@ python scripts/escalabilidad.py test --data data/processed \
 python scripts/graficar_escalabilidad.py --csv results/escalabilidad/test_final.csv
 ```
 
-El tamaño creciente predeterminado es 50, 100, 250, 500, 1.000, 2.000, 4.000 y el total de train (hasta el máximo disponible); con muchos cánceres, n=50 es un caso de pocas muestras por clase: consultar `base_class_counts` antes de interpretarlo. `--queries-per-phase N` limita las consultas de cada fase **solo si se solicita** (útil para desarrollo); con `0` se usan todas.
+El tamaño creciente predeterminado es 50, 100, 250, 500, 1.000, 2.000, 4.000 y el total de train (hasta el máximo disponible); con muchos cánceres, n=50 es un caso de pocas muestras por clase: consultar `base_class_counts` antes de interpretarlo. `--queries-per-phase N` (opción de `preparar_cohorte.py`) limita las consultas de cada fase **solo si se solicita** (útil para desarrollo); con `0` se usan todas.
 
 ### Calibración y selección
 
@@ -109,11 +109,23 @@ el bug de `n` en los CSV y se recuperó la política de calidad original
 recall@k≥0.90, cobertura≥0.90, candidatos≤50 %). Si no se cumple, se informa;
 no se alteran umbrales tras examinar test.
 
-Para regenerar CSV antiguos desde el JSON (sin volver a calcular algoritmos):
+Los CSV se generan junto con cada JSON (`validation.csv`, `test_final.csv`).
+Curva de compromiso recall@k vs fracción de candidatos y vs latencia, con todas
+las configuraciones de la grilla de validación:
 
 ```bash
-python scripts/reconstruir_csv.py results/escalabilidad/validation.json
-python scripts/reconstruir_csv.py results/escalabilidad/test_final.json
+python scripts/graficar_compromiso.py --csv results/escalabilidad/validation.csv \
+  --selection results/escalabilidad/configuraciones_congeladas.json
+```
+
+`graficar_escalabilidad.py` está pensado para `test_final.csv` (una configuración por
+método). Para curvas vs n a partir de `validation.csv`, usar solo la configuración
+congelada de cada método:
+
+```bash
+python scripts/graficar_congeladas.py --csv results/escalabilidad/validation.csv \
+  --selection results/escalabilidad/configuraciones_congeladas.json \
+  --out results/escalabilidad/figuras_validacion
 ```
 
 La corrida final con **nueva política** requiere volver a validar (y después
