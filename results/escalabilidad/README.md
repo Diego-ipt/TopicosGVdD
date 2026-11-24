@@ -1,18 +1,22 @@
-# Resultados de VALIDACIÓN sobre la cohorte real (corrida del 22-11-2026)
+# Resultados de VALIDACIÓN y TEST final sobre la cohorte real (corridas del 22-11-2026)
 
 > Esta carpeta mezcla resultados de dos etapas del proyecto. **No combinarlos en una misma tabla.**
 >
 > | Archivo | Origen | Protocolo |
 > |---|---|---|
 > | `expresion.csv`, `mutaciones.csv`, `resumen.json` | rama `main`, commit `bd9b65d` (pipeline antiguo) | cohorte 10.215, primeros 5.000 genes, sin train/val/test por paciente |
-> | `validation.{csv,json}`, `configuraciones_congeladas.json`, `pareado_val.csv`, `diagnostico_rerank_val.csv`, `figuras_validacion/` | esta corrida (rama `correcciones`) | cohorte 9.227, train/val/test por paciente, solo VALIDACIÓN |
+> | `validation.{csv,json}`, `configuraciones_congeladas.json`, `pareado_val.csv`, `diagnostico_rerank_val.csv`, `figuras_validacion/` | esta corrida | cohorte 9.227, train/val/test por paciente, fase VALIDACIÓN |
+> | `test_final.csv`, `pareado_test.csv`, `figuras_test/` | esta corrida | misma cohorte, fase TEST final (una sola vez, configuraciones congeladas) |
 >
 > Lo mismo aplica a `results/figures/escalabilidad_*.png` (pipeline antiguo).
 
 ## Qué se ejecutó
 
-- **Fase:** solo VALIDACIÓN. **El TEST real no se ha ejecutado** (no existen `test_final.*` ni `pareado_test.csv` aquí).
-- **Código:** commit `f597aa7` de `correcciones`. Los scripts de gráficos `graficar_compromiso.py` y `graficar_congeladas.py`, y el diagnóstico `diagnostico_rerank.py`, aún no tienen commit; no cambian el protocolo.
+- **Fases:**
+  - VALIDACIÓN: se eligieron y congelaron las configuraciones.
+  - **TEST final:** ejecutado **una sola vez** el 22-11-2026, con las 40 configuraciones congeladas (5 métodos × 8 tamaños) y sin reajustar nada.
+  - Antes y después del test se verificó (md5) que `configuraciones_congeladas.json` y los archivos de validación no cambiaron.
+- **Código:** protocolo del commit `f597aa7`, más los scripts de gráficos (`graficar_compromiso.py`, `graficar_congeladas.py`) y de diagnóstico (`diagnostico_rerank.py`), que no cambian el protocolo.
 - **Datos:** TCGA PanCanAtlas A1/A2/A3 (tamaños verificados: 1.882.540.959 / 2.945.129 / 8.463.670 bytes).
   - `dataset_id` = `072bac689034c9fe199b0cabeba249f443089256f995a4c2f47f6aaa192593da` (igual en `metadata.json`, `validation.json` y `configuraciones_congeladas.json`).
 - **Cohorte:** 9.227 pacientes, 33 tipos (train 6.459 / val 1.384 / test 1.384). Genes: 20.531 leídos, 20.306 usados.
@@ -20,7 +24,7 @@
   - transform `log2clip` + z-score con estadísticas de train;
   - 512 columnas coseno y 256 columnas p-estables;
   - semilla 2026, 1 réplica, k = 10;
-  - 1.384 consultas de validación;
+  - 1.384 consultas de validación y 1.384 de test;
   - tamaños de base n = 50, 100, 250, 500, 1000, 2000, 4000, 6459.
 - **Política de calidad** (sin modificar):
   - recall@10 ≥ 0,90;
@@ -53,9 +57,16 @@ python scripts/graficar_compromiso.py --csv results/escalabilidad/validation.csv
 python scripts/graficar_congeladas.py --csv results/escalabilidad/validation.csv \
   --selection results/escalabilidad/configuraciones_congeladas.json --out results/escalabilidad/figuras_validacion
 python scripts/diagnostico_rerank.py data/processed results/escalabilidad/diagnostico_rerank_val.csv
+# TEST final (una sola vez, con las configuraciones congeladas)
+python scripts/escalabilidad.py test --data data/processed --out results/escalabilidad --verify-hash   # 40 s
+python scripts/benchmark_pareado.py --data data/processed --raw data/raw \
+  --selection results/escalabilidad/configuraciones_congeladas.json \
+  --out results/escalabilidad/pareado_test.csv --phase test --queries 0 --max-dense-mib 2048
+python scripts/graficar_escalabilidad.py --csv results/escalabilidad/test_final.csv \
+  --pareado results/escalabilidad/pareado_test.csv --out results/escalabilidad/figuras_test
 ```
 
-Logs: `logs/preparar.log`, `logs/validar.log`, `logs/pareado_val.log`.
+Logs (no versionados): `logs/preparar.log`, `logs/validar.log`, `logs/pareado_val.log`, `logs/test.log`, `logs/pareado_test.log`. `validation.json` (26 MB) y `test_final.json` (3 MB) tampoco se versionan por tamaño.
 
 ## Qué figura usar
 
@@ -64,9 +75,23 @@ Logs: `logs/preparar.log`, `logs/validar.log`, `logs/pareado_val.log`.
 | `compromiso_recall_n6459.png` | sí | todas las configuraciones; el anillo marca la congelada. El panel de latencia NO incluye la proyección de la consulta. |
 | `tiempo_pareado_vs_n.png` / `speedup_pareado_vs_n.png` | sí | benchmark de consulta individual: exacto denso vs ANN + proyección; sin E/S ni construcción |
 | `accuracy_congelada_vs_n.png`, `recall_congelada_vs_n.png`, `candidatos_congelada_vs_n.png` | sí | solo la configuración congelada de cada método |
-| `accuracy_vs_n.png`, `recall_vs_n.png`, `candidatos_vs_n.png`, `concordancia_vs_n.png` | **no** | `graficar_escalabilidad.py` dibuja toda la grilla unida por líneas; pensado para `test_final.csv` |
+| `accuracy_vs_n.png`, `recall_vs_n.png`, `candidatos_vs_n.png`, `concordancia_vs_n.png` (en `figuras_validacion/`) | **no** | `graficar_escalabilidad.py` dibuja toda la grilla unida por líneas; pensado para `test_final.csv` |
+| `figuras_test/*.png` | sí | test final: una configuración congelada por método, así que las curvas se leen bien |
 
-## Cifras clave (n = 6459, validación)
+## Cifras clave del TEST final (n = 6459)
+
+| Método (configuración congelada) | Accuracy (Δ vs su exacto) | recall@10 | Candidatos | ms/consulta (pareado) | Speedup |
+|---|---|---:|---:|---:|---:|
+| Exacto coseno | 0,9270 | 1 | 100 % | 25,81 | — |
+| LSH L=16, r=6 | 0,9169 (−1,01 pp) | 0,682 | 24,5 % | 5,74 | 4,49× |
+| E2LSH p=2 L=32, r=4, w×1,0 | 0,9162 (−1,08 pp) | 0,464 | 13,3 % | 3,81 | 6,77× |
+| Exacto L1 | 0,9335 | 1 | 100 % | 43,65 | — |
+| E2LSH p=1 L=16, r=2, w×0,75 | 0,8793 (−5,42 pp) | 0,372 | 24,8 % | 9,20 | 4,75× |
+
+- El test confirma la validación: el recall cambia 0,01 o menos en todos los métodos.
+- **Ninguna configuración cumple la política de calidad en test** (0 de 40); el recall sigue bajo 0,90.
+
+## Cifras clave de VALIDACIÓN (n = 6459)
 
 | Método (configuración congelada) | Accuracy (Δ vs su exacto) | recall@10 | Candidatos | ms/consulta (pareado) | Speedup |
 |---|---|---:|---:|---:|---:|
@@ -105,7 +130,8 @@ Pregunta: ¿el recall se pierde al generar candidatos o al ordenarlos?
 
 ## Limitaciones
 
-- Solo validación, una semilla y una réplica: no hay estimación de variabilidad.
+- Una semilla y una réplica: no hay estimación de variabilidad.
+- El test ya se usó una vez. Cualquier cambio posterior de método (por ejemplo, el re-ranking exacto) se decide solo con validación, y un segundo test se informa como tal.
 - El benchmark de tiempos excluye E/S y construcción de índices; se corrió con un hilo y en WSL.
 - 33 clases desbalanceadas; con n pequeño, algunas clases tienen muy pocos ejemplos en la base.
 - El plan original de `main` pedía candidatos ≤ 20 %; el protocolo actual permite ≤ 50 %. Pendiente de acuerdo del equipo.
